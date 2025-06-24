@@ -1,0 +1,9 @@
+controller_manager:
+  ros__parameters:
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+imu_sensor_broadcaster:
+  ros__parameters:
+    frame_id: imu
+    sensor_name: base_imu
