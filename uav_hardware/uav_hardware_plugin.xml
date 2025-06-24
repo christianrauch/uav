@@ -1,0 +1,9 @@
+<library path="proxy_imu">
+  <class name="uav_hardware/ProxyIMU"
+         type="uav_hardware::ProxyIMU"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      proxy interface to an IMU
+    </description>
+  </class>
+</library>
