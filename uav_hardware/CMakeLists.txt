@@ -10,7 +10,9 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(realtime_tools REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(mavros_msgs REQUIRED)
 
 add_library(proxy_imu SHARED src/proxy_imu.cpp)
 target_link_libraries(proxy_imu PUBLIC
@@ -18,9 +20,16 @@ target_link_libraries(proxy_imu PUBLIC
   ${sensor_msgs_TARGETS}
 )
 
+add_library(proxy_actuator SHARED src/proxy_actuator.cpp)
+target_link_libraries(proxy_actuator PUBLIC
+  hardware_interface::hardware_interface
+  realtime_tools::realtime_tools
+  ${mavros_msgs_TARGETS}
+)
+
 pluginlib_export_plugin_description_file(hardware_interface ${PROJECT_NAME}_plugin.xml)
 
-install(TARGETS proxy_imu
+install(TARGETS proxy_imu proxy_actuator
   EXPORT ${PROJECT_NAME}Targets
 )
 
