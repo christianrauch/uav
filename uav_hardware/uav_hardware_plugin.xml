@@ -7,3 +7,13 @@
     </description>
   </class>
 </library>
+
+<library path="proxy_actuator">
+  <class name="uav_hardware/ProxyActuator"
+         type="uav_hardware::ProxyActuator"
+         base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      proxy interface to mavros_msgs/msg/ActuatorControl
+    </description>
+  </class>
+</library>

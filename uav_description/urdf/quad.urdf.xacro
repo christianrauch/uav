@@ -2,6 +2,43 @@
 <robot name="quad_x" xmlns:xacro="http://ros.org/wiki/xacro">
     <link name="base_link"/>
 
+    <link name="rotor/1"/>
+    <link name="rotor/2"/>
+    <link name="rotor/3"/>
+    <link name="rotor/4"/>
+
+    <!--Skydio X2 configuration-->
+    <!--https://github.com/lvjonok/skydio_x2_description-->
+
+    <joint name="rotor/1" type="continuous">
+        <parent link="base_link"/>
+        <child link="rotor/1"/>
+        <origin xyz="-0.14 -0.18 0.05"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="rotor/2" type="continuous">
+        <parent link="base_link"/>
+        <child link="rotor/2"/>
+        <origin xyz="-0.14 0.18 0.05"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="rotor/3" type="continuous">
+        <parent link="base_link"/>
+        <child link="rotor/3"/>
+        <origin xyz="0.14 0.18 0.08"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="rotor/4" type="continuous">
+        <parent link="base_link"/>
+        <child link="rotor/4"/>
+        <origin xyz="0.14 -0.18 0.08"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+
     <ros2_control name="proxy_imu" type="sensor">
         <hardware>
             <plugin>uav_hardware/ProxyIMU</plugin>
@@ -20,5 +57,27 @@
             <state_interface name="linear_acceleration.y"/>
             <state_interface name="linear_acceleration.z"/>
         </sensor>
+    </ros2_control>
+
+    <ros2_control name="proxy_actuator" type="actuator">
+        <hardware>
+            <plugin>uav_hardware/ProxyActuator</plugin>
+        </hardware>
+
+        <joint name="rotor/1">
+            <command_interface name="velocity"/>
+        </joint>
+
+        <joint name="rotor/2">
+            <command_interface name="velocity"/>
+        </joint>
+
+        <joint name="rotor/3">
+            <command_interface name="velocity"/>
+        </joint>
+
+        <joint name="rotor/4">
+            <command_interface name="velocity"/>
+        </joint>
     </ros2_control>
 </robot>

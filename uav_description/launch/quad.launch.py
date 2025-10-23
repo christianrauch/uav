@@ -31,6 +31,7 @@ def generate_launch_description():
         output='screen',
         remappings=[
             ('/proxy_imu/imu', '/mujoco_drone_simulator/imu'),
+            ('/proxy_actuator/actuators', '/mujoco_drone_simulator/actuators'),
         ],
     )
 
