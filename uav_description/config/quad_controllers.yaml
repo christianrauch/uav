@@ -3,6 +3,9 @@ controller_manager:
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    control_allocation:
+      type: control_allocation/ControlAllocationWrench
+
 imu_sensor_broadcaster:
   ros__parameters:
     frame_id: imu
