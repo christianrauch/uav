@@ -1,0 +1,11 @@
+<library path="control_allocation">
+  <class
+    name="control_allocation/ControlAllocationWrench"
+    type="uav_controllers::control_allocation::ControlAllocationWrench"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      map target body forces and torques to rotor velocities
+    </description>
+  </class>
+</library>

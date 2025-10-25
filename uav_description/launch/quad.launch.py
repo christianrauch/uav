@@ -35,16 +35,17 @@ def generate_launch_description():
         ],
     )
 
-    imu_sensor_broadcaster_spawner = Node(
+    controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
         arguments=[
             'imu_sensor_broadcaster',
+            'control_allocation',
         ],
     )
 
     return LaunchDescription([
         robot_state_publisher_node,
         ros2_control_node,
-        imu_sensor_broadcaster_spawner,
+        controller_spawner,
     ])
