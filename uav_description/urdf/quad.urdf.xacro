@@ -2,13 +2,23 @@
 <robot name="quad_x" xmlns:xacro="http://ros.org/wiki/xacro">
     <link name="base_link"/>
 
-    <link name="rotor/1"/>
-    <link name="rotor/2"/>
-    <link name="rotor/3"/>
-    <link name="rotor/4"/>
+    <xacro:macro name="rotor_link" params="name radius">
+        <link name="${name}">
+            <visual>
+                <geometry>
+                    <cylinder radius="${radius}" length="0.001"/>
+                </geometry>
+            </visual>
+        </link>
+    </xacro:macro>
 
     <!--Skydio X2 configuration-->
     <!--https://github.com/lvjonok/skydio_x2_description-->
+
+    <xacro:rotor_link name="rotor/1" radius="0.13"/>
+    <xacro:rotor_link name="rotor/2" radius="0.13"/>
+    <xacro:rotor_link name="rotor/3" radius="0.13"/>
+    <xacro:rotor_link name="rotor/4" radius="0.13"/>
 
     <joint name="rotor/1" type="continuous">
         <parent link="base_link"/>
