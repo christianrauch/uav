@@ -8,4 +8,13 @@
       map target body forces and torques to rotor velocities
     </description>
   </class>
+  <class
+    name="control_allocation/ControlAllocationSimple"
+    type="uav_controllers::control_allocation::ControlAllocationSimple"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      unitless geometric mapping of thrust, roll, pitch, yaw to motor commands
+    </description>
+  </class>
 </library>
