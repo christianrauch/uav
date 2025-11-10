@@ -17,6 +17,7 @@ find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
 add_library(control_allocation SHARED
+  src/control_allocation_simple.cpp
   src/control_allocation_wrench.cpp
 )
 target_link_libraries(control_allocation PUBLIC
