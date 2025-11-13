@@ -6,7 +6,29 @@ controller_manager:
     control_allocation:
       type: control_allocation/ControlAllocationSimple
 
+    angular_velocity:
+      type: uav_controllers/AngVelPID
+
 imu_sensor_broadcaster:
   ros__parameters:
     frame_id: imu
     sensor_name: base_imu
+
+angular_velocity:
+  ros__parameters:
+    mixer: control_allocation
+    sensor_name: base_imu
+    # https://en.wikipedia.org/wiki/Ziegler–Nichols_method
+    # Ku = 0.8
+    # Tu = 0.06 = 1/16.66Hz = 0.06s
+    gains:
+      # Kp = 0.2 * Ku
+      roll.p: 0.16
+      pitch.p: 0.16
+      # Ki = 0.4 * Ku / Tu
+      roll.i: 5.33
+      pitch.i: 5.33
+      # Kd = 6/90 * Ku * Tu
+      roll.d: 0.0032
+      pitch.d: 0.0032
+      yaw.p: 3.0

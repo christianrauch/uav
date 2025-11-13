@@ -18,3 +18,15 @@
     </description>
   </class>
 </library>
+
+<library path="controller">
+  <class
+    name="uav_controllers/AngVelPID"
+    type="uav_controllers::angular_velocity::AngVelPID"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      angular velocity [rad/s] PID controller
+    </description>
+  </class>
+</library>
