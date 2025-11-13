@@ -15,6 +15,7 @@ find_package(controller_interface REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
+find_package(control_toolbox REQUIRED)
 
 add_library(control_allocation SHARED
   src/control_allocation_simple.cpp
@@ -29,9 +30,19 @@ target_link_libraries(control_allocation PUBLIC
 )
 target_compile_definitions(control_allocation PRIVATE EIGEN_INITIALIZE_MATRICES_BY_NAN)
 
+add_library(controller SHARED
+  src/controller_angular_velocity_pid.cpp
+)
+target_link_libraries(controller PUBLIC
+  controller_interface::controller_interface
+  ${geometry_msgs_TARGETS}
+  realtime_tools::realtime_tools
+  control_toolbox::control_toolbox
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
-install(TARGETS control_allocation
+install(TARGETS control_allocation controller
   EXPORT ${PROJECT_NAME}Targets
 )
 
