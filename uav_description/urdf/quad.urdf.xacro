@@ -48,14 +48,8 @@
         <axis xyz="0 0 1"/>
     </joint>
 
-
-    <ros2_control name="proxy_imu" type="sensor">
-        <hardware>
-            <plugin>uav_hardware/ProxyIMU</plugin>
-            <param name="sensor_name">base_imu</param>
-        </hardware>
-
-        <sensor name="base_imu">
+    <xacro:macro name="imu" params="name">
+        <sensor name="${name}">
             <state_interface name="orientation.x"/>
             <state_interface name="orientation.y"/>
             <state_interface name="orientation.z"/>
@@ -67,13 +61,9 @@
             <state_interface name="linear_acceleration.y"/>
             <state_interface name="linear_acceleration.z"/>
         </sensor>
-    </ros2_control>
+    </xacro:macro>
 
-    <ros2_control name="proxy_actuator" type="actuator">
-        <hardware>
-            <plugin>uav_hardware/ProxyActuator</plugin>
-        </hardware>
-
+    <xacro:macro name="rotors">
         <joint name="rotor/1">
             <command_interface name="velocity"/>
         </joint>
@@ -89,5 +79,20 @@
         <joint name="rotor/4">
             <command_interface name="velocity"/>
         </joint>
+    </xacro:macro>
+
+    <ros2_control name="proxy_imu" type="sensor">
+        <hardware>
+            <plugin>uav_hardware/ProxyIMU</plugin>
+            <param name="sensor_name">base_imu</param>
+        </hardware>
+        <xacro:imu name="base_imu"/>
+    </ros2_control>
+
+    <ros2_control name="proxy_actuator" type="actuator">
+        <hardware>
+            <plugin>uav_hardware/ProxyActuator</plugin>
+        </hardware>
+        <xacro:rotors/>
     </ros2_control>
 </robot>
