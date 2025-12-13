@@ -32,12 +32,14 @@ target_compile_definitions(control_allocation PRIVATE EIGEN_INITIALIZE_MATRICES_
 
 add_library(controller SHARED
   src/controller_angular_velocity_pid.cpp
+  src/controller_orientation_pid.cpp
 )
 target_link_libraries(controller PUBLIC
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   control_toolbox::control_toolbox
+  Eigen3::Eigen
 )
 
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)

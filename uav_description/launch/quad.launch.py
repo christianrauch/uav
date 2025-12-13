@@ -42,6 +42,7 @@ def generate_launch_description():
             'imu_sensor_broadcaster',
             'control_allocation',
             'angular_velocity',
+            'angular_position',
         ],
     )
 
