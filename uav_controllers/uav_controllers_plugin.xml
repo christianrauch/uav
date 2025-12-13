@@ -29,4 +29,13 @@
       angular velocity [rad/s] PID controller
     </description>
   </class>
+  <class
+    name="uav_controllers/AngPosPID"
+    type="uav_controllers::angular_position::AngPosPID"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      angular position [rad] PID controller
+    </description>
+  </class>
 </library>

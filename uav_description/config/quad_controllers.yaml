@@ -9,6 +9,9 @@ controller_manager:
     angular_velocity:
       type: uav_controllers/AngVelPID
 
+    angular_position:
+      type: uav_controllers/AngPosPID
+
 imu_sensor_broadcaster:
   ros__parameters:
     frame_id: imu
@@ -32,3 +35,13 @@ angular_velocity:
       roll.d: 0.0032
       pitch.d: 0.0032
       yaw.p: 3.0
+
+angular_position:
+  ros__parameters:
+    velocity_controller_name: angular_velocity
+    sensor_name: base_imu
+    gains:
+      tau: 0.2
+      roll.p: 0.4
+      pitch.p: 0.4
+      yaw.p: 0.4
