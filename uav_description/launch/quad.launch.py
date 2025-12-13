@@ -29,6 +29,12 @@ def generate_launch_description():
         executable='ros2_control_node',
         parameters=[robot_controllers],
         output='screen',
+        arguments=[
+            '--ros-args',
+            # '--log-level', 'control_allocation:=debug',
+            # '--log-level', 'angular_velocity:=debug',
+            # '--log-level', 'angular_position:=debug',
+        ],
         remappings=[
             ('/proxy_imu/imu', '/mujoco_drone_simulator/imu'),
             ('/proxy_actuator/actuators', '/mujoco_drone_simulator/actuators'),
