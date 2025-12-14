@@ -105,20 +105,14 @@ public:
   }
 
   controller_interface::return_type update_and_write_commands(
-    const rclcpp::Time & time, const rclcpp::Duration & period) override
+    const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
   {
-    // compute the time difference between now and the last error computation, or use the period
-    // when used the first time
-    const rclcpp::Duration dt_s = (last_time.nanoseconds() == 0) ? period : (time - last_time);
-
-    last_time = time;
-
     // roll, pitch, yaw
     std::array<double, cmd_order.size()> cmds;
     for (size_t i = 0; i < pid_controllers.size(); i++)
     {
       const double state = state_interfaces_[i].get_optional().value_or(nan);
-      cmds[i] = pid_controllers[i]->compute_command(reference_interfaces_[i] - state, dt_s);
+      cmds[i] = pid_controllers[i]->compute_command(reference_interfaces_[i] - state, period);
       RCLCPP_DEBUG_STREAM(
         get_node()->get_logger(), std::fixed << std::setprecision(2) << cmd_order[i] << ": "
                                              << reference_interfaces_[i] << " <> " << state
@@ -154,7 +148,6 @@ private:
   std::string mixer_name;
   std::string sensor_name;
   std::array<std::shared_ptr<control_toolbox::Pid>, cmd_order.size()> pid_controllers;
-  rclcpp::Time last_time;
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_reference;
