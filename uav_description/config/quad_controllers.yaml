@@ -1,6 +1,8 @@
 controller_manager:
   ros__parameters:
     update_rate: 500
+    overruns.manage: false
+    overruns.print_warnings: false
 
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
