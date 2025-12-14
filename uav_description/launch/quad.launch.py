@@ -6,12 +6,12 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     robot_description = Command([
-        PathJoinSubstitution([FindExecutable(name="xacro")]), " ",
-        PathJoinSubstitution([FindPackageShare("uav_description"), "urdf", "quad.urdf.xacro",]),
+        PathJoinSubstitution([FindExecutable(name='xacro')]), ' ',
+        PathJoinSubstitution([FindPackageShare('uav_description'), 'urdf', 'quad.urdf.xacro',]),
     ])
 
     robot_controllers = PathJoinSubstitution([
-        FindPackageShare("uav_description"), "config", "quad_controllers.yaml",
+        FindPackageShare('uav_description'), 'config', 'quad_controllers.yaml',
     ])
 
     robot_state_publisher_node = Node(
