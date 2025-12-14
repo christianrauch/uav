@@ -1,5 +1,7 @@
 controller_manager:
   ros__parameters:
+    update_rate: 500
+
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
@@ -22,22 +24,24 @@ angular_velocity:
     mixer: control_allocation
     sensor_name: base_imu
     # https://en.wikipedia.org/wiki/Ziegler–Nichols_method
+    # Kp = 0.2 * Ku
+    # Ki = 0.4 * Ku / Tu
+    # Kd = 6/90 * Ku * Tu
+
     # Ku = 0.8
-    # Tu = 0.06 = 1/16.66Hz = 0.06s
+    # Tu = 0.012 = 1/83.33Hz = 0.012s
     gains:
-      # Kp = 0.2 * Ku
       roll.p: 0.16
       pitch.p: 0.16
-      # Ki = 0.4 * Ku / Tu
-      roll.i: 5.33
-      pitch.i: 5.33
-      # Kd = 6/90 * Ku * Tu
-      roll.d: 0.0032
-      pitch.d: 0.0032
+      roll.i: 26.66
+      pitch.i: 26.66
+      roll.d: 0.00064
+      pitch.d: 0.00064
       yaw.p: 3.0
 
 angular_position:
   ros__parameters:
+    update_rate: 250
     velocity_controller_name: angular_velocity
     sensor_name: base_imu
     gains:
