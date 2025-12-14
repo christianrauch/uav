@@ -1,0 +1,34 @@
+name: bloom
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - {image: ubuntu, version: noble, ros: jazzy}
+
+    container:
+      image: ${{ matrix.image }}:${{ matrix.version }}
+      options: --privileged
+
+    steps:
+      - run: |
+          usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $(whoami)
+
+      - name: install build dependencies
+        run: |
+          apt update
+          apt install -y --no-install-recommends sudo ca-certificates python3-setuptools
+
+      - uses: jspricke/ros-deb-builder-action@main
+        with:
+          ROS_DISTRO: ${{ matrix.ros }}
+          DEB_DISTRO: ${{ matrix.version }}
