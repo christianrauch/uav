@@ -120,49 +120,35 @@ public:
   controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
   {
-    // compute linear acceleration error
-    Eigen::Vector3d acc_err;
-    for (size_t i = 0; i < 3; i++)
-    {
-      const double state = state_interfaces_[i].get_optional().value_or(nan);
-      acc_err[i] = pid_controllers[i]->compute_command(reference_interfaces_[i] - state, period);
-    }
+    // reference: linear acceleration
+    const Eigen::Vector3d acc_ref{
+      reference_interfaces_[0],
+      reference_interfaces_[1],
+      reference_interfaces_[2],
+    };
 
-    // compute thrust and orientation from linear acceleration error
-    const double thrust = acc_err.norm();
-    const Eigen::Vector3d acc_norm = acc_err.normalized();
+    // state: linear acceleration
+    const Eigen::Vector3d acc_state{
+      state_interfaces_[0].get_optional().value_or(nan),
+      state_interfaces_[1].get_optional().value_or(nan),
+      state_interfaces_[2].get_optional().value_or(nan),
+    };
 
-    // orientation from acceleration vector
-    const Eigen::Quaterniond q_ref =
-      Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), acc_norm);
+    // state: orientation
+    const Eigen::Quaterniond q_state{
+      state_interfaces_[6].get_optional().value_or(nan),  // w
+      state_interfaces_[3].get_optional().value_or(nan),  // x
+      state_interfaces_[4].get_optional().value_or(nan),  // y
+      state_interfaces_[5].get_optional().value_or(nan),  // z
+    };
 
-    std::cout << "q_ref: " << q_ref.coeffs().transpose() << std::endl;
-    std::cout << "q norm: " << q_ref.norm() << std::endl;
-
-    bool status_ok = true;
-
-    // set orientation commands
-    status_ok &= command_interfaces_[0].set_value(q_ref.x());
-    status_ok &= command_interfaces_[1].set_value(q_ref.y());
-    status_ok &= command_interfaces_[2].set_value(q_ref.z());
-    status_ok &= command_interfaces_[3].set_value(q_ref.w());
-
-    // set thrust command
-    status_ok &= command_interfaces_[4].set_value(thrust);
-
-    if (status_ok)
-    {
-      return controller_interface::return_type::OK;
-    }
-    else
-    {
-      return controller_interface::return_type::ERROR;
-    }
+    // DBG
+    return controller_interface::return_type::OK;
   }
 
 private:
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
-  static constexpr std::array<std::string, 3> cmd_order = {"x", "y", "z"};
+  static constexpr std::array<std::string, 4> cmd_order = {"x", "y", "z", "thrust"};
 
   std::string mixer_name;
   std::string orientation_controller_name;
