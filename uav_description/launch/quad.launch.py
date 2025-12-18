@@ -29,6 +29,7 @@ def generate_launch_description():
         executable='ros2_control_node',
         parameters=[robot_controllers],
         output='screen',
+        additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
             '--ros-args',
             # '--log-level', 'control_allocation:=debug',
@@ -44,6 +45,7 @@ def generate_launch_description():
     controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
+        additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
             'imu_sensor_broadcaster',
             'control_allocation',
