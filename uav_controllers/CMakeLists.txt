@@ -53,6 +53,7 @@ target_link_libraries(controller_angular_velocity_pid PUBLIC
 
 add_library(controller_orientation_pid SHARED
   src/controller_orientation_pid.cpp
+  src/controller_linear_acceleration_pid.cpp
 )
 target_link_libraries(controller_orientation_pid PUBLIC
   controller_interface::controller_interface

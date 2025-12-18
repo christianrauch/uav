@@ -44,4 +44,13 @@
       angular position [rad] PID controller
     </description>
   </class>
+  <class
+    name="uav_controllers/LinAccPID"
+    type="uav_controllers::linear_acceleration::LinAccPID"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      linear acceleration [m/s^2] PID controller
+    </description>
+  </class>
 </library>
