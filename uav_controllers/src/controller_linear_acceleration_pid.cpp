@@ -1,3 +1,4 @@
+#include <Eigen/Geometry>
 #include <control_toolbox/pid.hpp>
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
@@ -28,9 +29,15 @@ public:
   controller_interface::InterfaceConfiguration state_interface_configuration() const override
   {
     const std::vector<std::string> interface_names = {
+      // linear acceleration
       sensor_name + "/linear_acceleration.x",
       sensor_name + "/linear_acceleration.y",
       sensor_name + "/linear_acceleration.z",
+      // orientation
+      sensor_name + "/orientation.x",
+      sensor_name + "/orientation.y",
+      sensor_name + "/orientation.z",
+      sensor_name + "/orientation.w",
     };
     return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
   }
@@ -113,14 +120,35 @@ public:
   controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
   {
+    // compute linear acceleration error
+    Eigen::Vector3d acc_err;
+    for (size_t i = 0; i < 3; i++)
+    {
+      const double state = state_interfaces_[i].get_optional().value_or(nan);
+      acc_err[i] = pid_controllers[i]->compute_command(reference_interfaces_[i] - state, period);
+    }
+
+    // compute thrust and orientation from linear acceleration error
+    const double thrust = acc_err.norm();
+    const Eigen::Vector3d acc_norm = acc_err.normalized();
+
+    // orientation from acceleration vector
+    const Eigen::Quaterniond q_ref =
+      Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), acc_norm);
+
+    std::cout << "q_ref: " << q_ref.coeffs().transpose() << std::endl;
+    std::cout << "q norm: " << q_ref.norm() << std::endl;
+
     bool status_ok = true;
-    // for (size_t i = 0; i < pid_controllers.size(); i++)
-    // {
-    //   const double state = state_interfaces_[i].get_optional().value_or(nan);
-    //   const double cmd =
-    //     pid_controllers[i]->compute_command(reference_interfaces_[i] - state, period);
-    //   status_ok &= command_interfaces_[i].set_value(cmd);
-    // }
+
+    // set orientation commands
+    status_ok &= command_interfaces_[0].set_value(q_ref.x());
+    status_ok &= command_interfaces_[1].set_value(q_ref.y());
+    status_ok &= command_interfaces_[2].set_value(q_ref.z());
+    status_ok &= command_interfaces_[3].set_value(q_ref.w());
+
+    // set thrust command
+    status_ok &= command_interfaces_[4].set_value(thrust);
 
     if (status_ok)
     {
