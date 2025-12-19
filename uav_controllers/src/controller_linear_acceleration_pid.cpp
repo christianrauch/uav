@@ -50,7 +50,8 @@ public:
       "linear_acceleration.y",
       "linear_acceleration.z",
     };
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
+    // by default, do not accelerate in either direction
+    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
 
     sub_reference = get_node()->create_subscription<geometry_msgs::msg::Vector3>(
       "~/reference", 1, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) -> void
@@ -156,6 +157,8 @@ public:
       cmds[i] = pid_controllers[i]->compute_command(acc_err_body[i], period);
     }
 
+    // TODO: setting the target orientation should work without PIDs
+
     // RCLCPP_INFO_STREAM(
     //   get_node()->get_logger(),
     //   std::fixed << std::setprecision(2) << "cmds (x,y,z): " << cmds.transpose());
@@ -210,7 +213,7 @@ public:
 private:
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
   // The first three commands are for orientation.x, orientation.y, orientation.z
-  static constexpr std::array<std::string, 4> cmd_order = {"x", "y", "z"};
+  static constexpr std::array<std::string, 4> cmd_order = {"x", "y", "z", "thrust"};
 
   std::string mixer_name;
   std::string orientation_controller_name;
