@@ -57,6 +57,9 @@ angular_position:
 
 linear_acceleration:
   ros__parameters:
+    update_rate: 250
     mixer: control_allocation
     orientation_controller_name: angular_position
     sensor_name: base_imu
+    gains:
+      thrust.p: 0.1
