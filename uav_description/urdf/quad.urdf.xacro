@@ -81,6 +81,19 @@
         </joint>
     </xacro:macro>
 
+    <xacro:macro name="rc">
+        <sensor name="rc">
+            <state_interface name="channel/1"/>
+            <state_interface name="channel/2"/>
+            <state_interface name="channel/3"/>
+            <state_interface name="channel/4"/>
+            <state_interface name="channel/5"/>
+            <state_interface name="channel/6"/>
+            <state_interface name="channel/7"/>
+            <state_interface name="channel/8"/>
+        </sensor>
+    </xacro:macro>
+
     <ros2_control name="proxy_imu" type="sensor">
         <hardware>
             <plugin>uav_hardware/ProxyIMU</plugin>
@@ -94,5 +107,12 @@
             <plugin>uav_hardware/ProxyActuator</plugin>
         </hardware>
         <xacro:rotors/>
+    </ros2_control>
+
+    <ros2_control name="proxy_rc" type="sensor">
+        <hardware>
+            <plugin>uav_hardware/ProxyRC</plugin>
+        </hardware>
+        <xacro:rc/>
     </ros2_control>
 </robot>
