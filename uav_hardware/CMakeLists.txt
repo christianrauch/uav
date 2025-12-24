@@ -27,9 +27,16 @@ target_link_libraries(proxy_actuator PUBLIC
   ${mavros_msgs_TARGETS}
 )
 
+add_library(proxy_rc SHARED src/proxy_rc.cpp)
+target_link_libraries(proxy_rc PUBLIC
+  hardware_interface::hardware_interface
+  realtime_tools::realtime_tools
+  ${mavros_msgs_TARGETS}
+)
+
 pluginlib_export_plugin_description_file(hardware_interface ${PROJECT_NAME}_plugin.xml)
 
-install(TARGETS proxy_imu proxy_actuator
+install(TARGETS proxy_imu proxy_actuator proxy_rc
   EXPORT ${PROJECT_NAME}Targets
 )
 
