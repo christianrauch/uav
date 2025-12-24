@@ -17,3 +17,13 @@
     </description>
   </class>
 </library>
+
+<library path="proxy_rc">
+  <class name="uav_hardware/ProxyRC"
+         type="uav_hardware::ProxyRC"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      proxy interface to RC channels via mavros_msgs/msg/OverrideRCIn
+    </description>
+  </class>
+</library>
