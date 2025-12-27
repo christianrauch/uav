@@ -62,6 +62,16 @@ target_link_libraries(controller_orientation_pid PUBLIC
   Eigen3::Eigen
 )
 
+add_library(controller_attitude_pid SHARED
+  src/controller_attitude_pid.cpp
+)
+target_link_libraries(controller_attitude_pid PUBLIC
+  controller_interface::controller_interface
+  ${geometry_msgs_TARGETS}
+  realtime_tools::realtime_tools
+  Eigen3::Eigen
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
 install(TARGETS
@@ -69,6 +79,7 @@ install(TARGETS
   control_allocation_simple
   controller_angular_velocity_pid
   controller_orientation_pid
+  controller_attitude_pid
   EXPORT ${PROJECT_NAME}Targets
 )
 
