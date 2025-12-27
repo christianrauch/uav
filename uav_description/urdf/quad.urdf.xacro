@@ -94,18 +94,16 @@
         </sensor>
     </xacro:macro>
 
-    <ros2_control name="proxy_imu" type="sensor">
+    <ros2_control name="mujoco" type="system">
         <hardware>
-            <plugin>uav_hardware/ProxyIMU</plugin>
-            <param name="sensor_name">base_imu</param>
+            <plugin>uav_mujoco_ros2_control/MuJoCoSystem</plugin>
+            <param name="imu_name">base_imu</param>
+            <param name="gravity">0</param>
+<!--            <param name="initial_velocity">0, 0, 0, 0, 0.1, 0, 0</param>-->
+            <param name="mj_model_path">/home/christian/.cache/robot_descriptions/mujoco_menagerie/skydio_x2/x2.xml</param>
+<!--             <param name="visualise"/>-->
         </hardware>
         <xacro:imu name="base_imu"/>
-    </ros2_control>
-
-    <ros2_control name="proxy_actuator" type="actuator">
-        <hardware>
-            <plugin>uav_hardware/ProxyActuator</plugin>
-        </hardware>
         <xacro:rotors/>
     </ros2_control>
 
