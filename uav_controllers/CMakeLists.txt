@@ -43,9 +43,16 @@ target_link_libraries(controller PUBLIC
   Eigen3::Eigen
 )
 
+add_library(modes SHARED
+  src/mode_attitude.cpp
+)
+target_link_libraries(modes PUBLIC
+  controller_interface::controller_interface
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
-install(TARGETS control_allocation controller
+install(TARGETS control_allocation controller modes
   EXPORT ${PROJECT_NAME}Targets
 )
 

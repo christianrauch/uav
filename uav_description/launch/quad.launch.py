@@ -52,6 +52,7 @@ def generate_launch_description():
             'control_allocation',
             # 'angular_velocity', 'angular_position',
             'attitude',
+            'attitude_mode',
         ],
     )
 

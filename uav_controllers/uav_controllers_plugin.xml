@@ -48,3 +48,15 @@
     </description>
   </class>
 </library>
+
+<library path="modes">
+  <class
+    name="uav_controllers/AttitudeFlightMode"
+    type="uav_controllers::flight_mode::AttitudeFlightMode"
+    base_class_type="controller_interface::ControllerInterface"
+  >
+    <description>
+      flight mode controlling the orientation and thrust
+    </description>
+  </class>
+</library>
