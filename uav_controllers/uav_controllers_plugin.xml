@@ -38,4 +38,13 @@
       angular position [rad] PID controller
     </description>
   </class>
+  <class
+    name="uav_controllers/AttitudePID"
+    type="uav_controllers::attitude::AttitudePID"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      attitude (roll, pitch) [rad] and yaw rate [rad/s] PID controller
+    </description>
+  </class>
 </library>

@@ -35,6 +35,7 @@ def generate_launch_description():
             # '--log-level', 'control_allocation:=debug',
             # '--log-level', 'angular_velocity:=debug',
             # '--log-level', 'angular_position:=debug',
+            # '--log-level', 'attitude:=debug',
         ],
         remappings=[
             ('/proxy_imu/imu', '/mujoco_drone_simulator/imu'),
@@ -49,8 +50,8 @@ def generate_launch_description():
         arguments=[
             'imu_sensor_broadcaster',
             'control_allocation',
-            'angular_velocity',
-            'angular_position',
+            # 'angular_velocity', 'angular_position',
+            'attitude',
         ],
     )
 

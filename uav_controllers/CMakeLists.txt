@@ -33,6 +33,7 @@ target_compile_definitions(control_allocation PRIVATE EIGEN_INITIALIZE_MATRICES_
 add_library(controller SHARED
   src/controller_angular_velocity_pid.cpp
   src/controller_orientation_pid.cpp
+  src/controller_attitude_pid.cpp
 )
 target_link_libraries(controller PUBLIC
   controller_interface::controller_interface
