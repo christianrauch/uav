@@ -19,6 +19,9 @@ controller_manager:
     attitude:
       type: uav_controllers/AttitudePID
 
+    attitude_mode:
+      type: uav_controllers/AttitudeFlightMode
+
 imu_sensor_broadcaster:
   ros__parameters:
     frame_id: imu
@@ -65,3 +68,10 @@ attitude:
       pitch.p: 2.
       pitch.d: 0.01
       yaw_rate.p: 0.4
+
+attitude_mode:
+  ros__parameters:
+    attitude_controller_name: attitude
+    mixer: control_allocation
+    rpyt_channels: [2, 3, 4, 1]
+    max_tilt: 45.

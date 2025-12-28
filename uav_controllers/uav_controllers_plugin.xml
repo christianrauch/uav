@@ -57,3 +57,15 @@
     </description>
   </class>
 </library>
+
+<library path="mode_attitude">
+  <class
+    name="uav_controllers/AttitudeFlightMode"
+    type="uav_controllers::flight_mode::AttitudeFlightMode"
+    base_class_type="controller_interface::ControllerInterface"
+  >
+    <description>
+      flight mode mapping RC channels to attitude, yaw rate, and thrust
+    </description>
+  </class>
+</library>
