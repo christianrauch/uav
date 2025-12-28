@@ -17,18 +17,29 @@ find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 find_package(control_toolbox REQUIRED)
 
-add_library(control_allocation SHARED
-  src/control_allocation_simple.cpp
+add_library(control_allocation_wrench SHARED
   src/control_allocation_wrench.cpp
 )
-target_link_libraries(control_allocation PUBLIC
+target_link_libraries(control_allocation_wrench PUBLIC
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   Eigen3::Eigen
   urdfdom_headers::urdfdom_headers
 )
-target_compile_definitions(control_allocation PRIVATE EIGEN_INITIALIZE_MATRICES_BY_NAN)
+target_compile_definitions(control_allocation_wrench PRIVATE EIGEN_INITIALIZE_MATRICES_BY_NAN)
+
+add_library(control_allocation_simple SHARED
+  src/control_allocation_simple.cpp
+)
+target_link_libraries(control_allocation_simple PUBLIC
+  controller_interface::controller_interface
+  ${geometry_msgs_TARGETS}
+  realtime_tools::realtime_tools
+  Eigen3::Eigen
+  urdfdom_headers::urdfdom_headers
+)
+target_compile_definitions(control_allocation_simple PRIVATE EIGEN_INITIALIZE_MATRICES_BY_NAN)
 
 add_library(controller SHARED
   src/controller_angular_velocity_pid.cpp
@@ -44,7 +55,10 @@ target_link_libraries(controller PUBLIC
 
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
-install(TARGETS control_allocation controller
+install(TARGETS
+  control_allocation_wrench
+  control_allocation_simple
+  controller
   EXPORT ${PROJECT_NAME}Targets
 )
 
