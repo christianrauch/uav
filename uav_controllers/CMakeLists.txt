@@ -72,6 +72,13 @@ target_link_libraries(controller_attitude_pid PUBLIC
   Eigen3::Eigen
 )
 
+add_library(mode_attitude SHARED
+  src/mode_attitude.cpp
+)
+target_link_libraries(mode_attitude PUBLIC
+  controller_interface::controller_interface
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
 install(TARGETS
@@ -80,6 +87,7 @@ install(TARGETS
   controller_angular_velocity_pid
   controller_orientation_pid
   controller_attitude_pid
+  mode_attitude
   EXPORT ${PROJECT_NAME}Targets
 )
 
