@@ -41,11 +41,20 @@ target_link_libraries(control_allocation_simple PUBLIC
 )
 target_compile_definitions(control_allocation_simple PRIVATE EIGEN_INITIALIZE_MATRICES_BY_NAN)
 
-add_library(controller SHARED
+add_library(controller_angular_velocity_pid SHARED
   src/controller_angular_velocity_pid.cpp
+)
+target_link_libraries(controller_angular_velocity_pid PUBLIC
+  controller_interface::controller_interface
+  ${geometry_msgs_TARGETS}
+  realtime_tools::realtime_tools
+  control_toolbox::control_toolbox
+)
+
+add_library(controller_orientation_pid SHARED
   src/controller_orientation_pid.cpp
 )
-target_link_libraries(controller PUBLIC
+target_link_libraries(controller_orientation_pid PUBLIC
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
@@ -58,7 +67,8 @@ pluginlib_export_plugin_description_file(controller_interface uav_controllers_pl
 install(TARGETS
   control_allocation_wrench
   control_allocation_simple
-  controller
+  controller_angular_velocity_pid
+  controller_orientation_pid
   EXPORT ${PROJECT_NAME}Targets
 )
 

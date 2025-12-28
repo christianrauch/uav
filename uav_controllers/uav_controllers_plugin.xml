@@ -22,7 +22,7 @@
   </class>
 </library>
 
-<library path="controller">
+<library path="controller_angular_velocity_pid">
   <class
     name="uav_controllers/AngVelPID"
     type="uav_controllers::angular_velocity::AngVelPID"
@@ -32,6 +32,9 @@
       angular velocity [rad/s] PID controller
     </description>
   </class>
+</library>
+
+<library path="controller_orientation_pid">
   <class
     name="uav_controllers/AngPosPID"
     type="uav_controllers::angular_position::AngPosPID"
