@@ -41,8 +41,8 @@ angular_velocity:
     gains:
       roll.p: 0.16
       pitch.p: 0.16
-      roll.i: 26.66
-      pitch.i: 26.66
+      roll.i: 2.6
+      pitch.i: 2.6
       roll.d: 0.00064
       pitch.d: 0.00064
       yaw.p: 3.0
