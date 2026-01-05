@@ -2,7 +2,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 
-namespace uav_hardware
+namespace uav::proxy
 {
 
 class ProxyIMU : public hardware_interface::SensorInterface
@@ -81,6 +81,6 @@ private:
   rclcpp::MessageInfo msg_imu_info;
 };
 
-}  // namespace uav_hardware
+}  // namespace uav::proxy
 
-PLUGINLIB_EXPORT_CLASS(uav_hardware::ProxyIMU, hardware_interface::SensorInterface)
+PLUGINLIB_EXPORT_CLASS(uav::proxy::ProxyIMU, hardware_interface::SensorInterface)
