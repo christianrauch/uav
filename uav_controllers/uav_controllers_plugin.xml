@@ -24,8 +24,8 @@
 
 <library path="controller_angular_velocity_pid">
   <class
-    name="uav_controllers/AngVelPID"
-    type="uav_controllers::angular_velocity::AngVelPID"
+    name="uav/controllers/AngVelPID"
+    type="uav::controllers::angular_velocity::AngVelPID"
     base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>
@@ -36,8 +36,8 @@
 
 <library path="controller_orientation_pid">
   <class
-    name="uav_controllers/AngPosPID"
-    type="uav_controllers::angular_position::AngPosPID"
+    name="uav/controllers/AngPosPID"
+    type="uav::controllers::angular_position::AngPosPID"
     base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>
@@ -48,8 +48,8 @@
 
 <library path="controller_attitude_pid">
   <class
-    name="uav_controllers/AttitudePID"
-    type="uav_controllers::attitude::AttitudePID"
+    name="uav/controllers/AttitudePID"
+    type="uav::controllers::attitude::AttitudePID"
     base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>

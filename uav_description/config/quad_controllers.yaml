@@ -11,13 +11,13 @@ controller_manager:
       type: uav/control_allocation/ControlAllocationSimple
 
     angular_velocity:
-      type: uav_controllers/AngVelPID
+      type: uav/controllers/AngVelPID
 
     angular_position:
-      type: uav_controllers/AngPosPID
+      type: uav/controllers/AngPosPID
 
     attitude:
-      type: uav_controllers/AttitudePID
+      type: uav/controllers/AttitudePID
 
     attitude_mode:
       type: uav_controllers/AttitudeFlightMode
