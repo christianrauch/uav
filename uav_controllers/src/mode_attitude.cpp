@@ -1,10 +1,7 @@
 #include <controller_interface/controller_interface.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
-namespace uav_controllers
-{
-
-namespace flight_mode
+namespace uav::flight_mode
 {
 
 class AttitudeFlightMode : public controller_interface::ControllerInterface
@@ -107,9 +104,7 @@ private:
   static constexpr double rc_max = 1;
 };
 
-}  // namespace flight_mode
-
-}  // namespace uav_controllers
+}  // namespace uav::flight_mode
 
 PLUGINLIB_EXPORT_CLASS(
-  uav_controllers::flight_mode::AttitudeFlightMode, controller_interface::ControllerInterface)
+  uav::flight_mode::AttitudeFlightMode, controller_interface::ControllerInterface)
