@@ -20,7 +20,7 @@ controller_manager:
       type: uav/controllers/AttitudePID
 
     attitude_mode:
-      type: uav_controllers/AttitudeFlightMode
+      type: uav/mode/AttitudeFlightMode
 
 imu_sensor_broadcaster:
   ros__parameters:

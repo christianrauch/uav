@@ -60,8 +60,8 @@
 
 <library path="mode_attitude">
   <class
-    name="uav_controllers/AttitudeFlightMode"
-    type="uav_controllers::flight_mode::AttitudeFlightMode"
+    name="uav/mode/AttitudeFlightMode"
+    type="uav::flight_mode::AttitudeFlightMode"
     base_class_type="controller_interface::ControllerInterface"
   >
     <description>
