@@ -1,118 +1,18 @@
 <?xml version="1.0"?>
 <robot name="quad_x" xmlns:xacro="http://ros.org/wiki/xacro">
-    <link name="base_link"/>
 
-    <xacro:macro name="rotor_link" params="name radius">
-        <link name="${name}">
-            <visual>
-                <geometry>
-                    <cylinder radius="${radius}" length="0.001"/>
-                </geometry>
-            </visual>
-        </link>
-    </xacro:macro>
+  <xacro:include filename="rotor_link.xacro" />
 
-    <!--Skydio X2 configuration-->
-    <!--https://github.com/lvjonok/skydio_x2_description-->
+  <!--Skydio X2 configuration-->
+  <!--https://github.com/lvjonok/skydio_x2_description-->
 
-    <xacro:rotor_link name="rotor/1" radius="0.13"/>
-    <xacro:rotor_link name="rotor/2" radius="0.13"/>
-    <xacro:rotor_link name="rotor/3" radius="0.13"/>
-    <xacro:rotor_link name="rotor/4" radius="0.13"/>
+  <link name="base_link" />
+  <xacro:rotor_link id="1" base="base_link" origin="-0.14 -0.18 0.05" radius="0.13" />
+  <xacro:rotor_link id="2" base="base_link" origin="-0.14 +0.18 0.05" radius="0.13" />
+  <xacro:rotor_link id="3" base="base_link" origin="+0.14 +0.18 0.08" radius="0.13" />
+  <xacro:rotor_link id="4" base="base_link" origin="+0.14 -0.18 0.08" radius="0.13" />
 
-    <joint name="rotor/1" type="continuous">
-        <parent link="base_link"/>
-        <child link="rotor/1"/>
-        <origin xyz="-0.14 -0.18 0.05"/>
-        <axis xyz="0 0 1"/>
-    </joint>
+  <xacro:include filename="$(find uav_description)/urdf/ros2_control/proxy_interfaces.xacro" />
 
-    <joint name="rotor/2" type="continuous">
-        <parent link="base_link"/>
-        <child link="rotor/2"/>
-        <origin xyz="-0.14 0.18 0.05"/>
-        <axis xyz="0 0 1"/>
-    </joint>
-
-    <joint name="rotor/3" type="continuous">
-        <parent link="base_link"/>
-        <child link="rotor/3"/>
-        <origin xyz="0.14 0.18 0.08"/>
-        <axis xyz="0 0 1"/>
-    </joint>
-
-    <joint name="rotor/4" type="continuous">
-        <parent link="base_link"/>
-        <child link="rotor/4"/>
-        <origin xyz="0.14 -0.18 0.08"/>
-        <axis xyz="0 0 1"/>
-    </joint>
-
-    <xacro:macro name="imu" params="name">
-        <sensor name="${name}">
-            <state_interface name="orientation.x"/>
-            <state_interface name="orientation.y"/>
-            <state_interface name="orientation.z"/>
-            <state_interface name="orientation.w"/>
-            <state_interface name="angular_velocity.x"/>
-            <state_interface name="angular_velocity.y"/>
-            <state_interface name="angular_velocity.z"/>
-            <state_interface name="linear_acceleration.x"/>
-            <state_interface name="linear_acceleration.y"/>
-            <state_interface name="linear_acceleration.z"/>
-        </sensor>
-    </xacro:macro>
-
-    <xacro:macro name="rotors">
-        <joint name="rotor/1">
-            <command_interface name="velocity"/>
-        </joint>
-
-        <joint name="rotor/2">
-            <command_interface name="velocity"/>
-        </joint>
-
-        <joint name="rotor/3">
-            <command_interface name="velocity"/>
-        </joint>
-
-        <joint name="rotor/4">
-            <command_interface name="velocity"/>
-        </joint>
-    </xacro:macro>
-
-    <xacro:macro name="rc">
-        <sensor name="rc">
-            <state_interface name="channel/1"/>
-            <state_interface name="channel/2"/>
-            <state_interface name="channel/3"/>
-            <state_interface name="channel/4"/>
-            <state_interface name="channel/5"/>
-            <state_interface name="channel/6"/>
-            <state_interface name="channel/7"/>
-            <state_interface name="channel/8"/>
-        </sensor>
-    </xacro:macro>
-
-    <ros2_control name="proxy_imu" type="sensor">
-        <hardware>
-            <plugin>uav/proxy/IMU</plugin>
-            <param name="sensor_name">base_imu</param>
-        </hardware>
-        <xacro:imu name="base_imu"/>
-    </ros2_control>
-
-    <ros2_control name="proxy_actuator" type="actuator">
-        <hardware>
-            <plugin>uav/proxy/Actuator</plugin>
-        </hardware>
-        <xacro:rotors/>
-    </ros2_control>
-
-    <ros2_control name="proxy_rc" type="sensor">
-        <hardware>
-            <plugin>uav/proxy/RC</plugin>
-        </hardware>
-        <xacro:rc/>
-    </ros2_control>
+  <xacro:proxy_interfaces />
 </robot>
