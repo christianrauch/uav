@@ -5,10 +5,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 
-namespace uav_controllers
-{
-
-namespace control_allocation
+namespace uav::control_allocation
 {
 
 class ControlAllocationSimple : public controller_interface::ChainableControllerInterface
@@ -165,10 +162,8 @@ private:
   }
 };
 
-}  // namespace control_allocation
-
-}  // namespace uav_controllers
+}  // namespace uav::control_allocation
 
 PLUGINLIB_EXPORT_CLASS(
-  uav_controllers::control_allocation::ControlAllocationSimple,
+  uav::control_allocation::ControlAllocationSimple,
   controller_interface::ChainableControllerInterface)
