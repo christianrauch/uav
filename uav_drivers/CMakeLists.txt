@@ -1,0 +1,55 @@
+cmake_minimum_required(VERSION 3.8)
+project(uav_drivers)
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_link_options("-Wl,-z,defs")
+  add_link_options("-Wl,--no-allow-shlib-undefined")
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(hardware_interface REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(Eigen3 REQUIRED NO_MODULE)
+find_package(urdfdom_headers REQUIRED)
+
+add_library(imu_base INTERFACE)
+target_include_directories(imu_base INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
+target_link_libraries(imu_base INTERFACE
+  hardware_interface::hardware_interface
+  Eigen3::Eigen
+  urdfdom_headers::urdfdom_headers
+)
+target_compile_features(imu_base INTERFACE cxx_std_20)
+
+add_library(imu_nil src/imu_nil.cpp)
+target_link_libraries(imu_nil imu_base)
+
+install(TARGETS imu_base
+  EXPORT ${PROJECT_NAME}Targets
+)
+
+ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp hardware_interface pluginlib)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  # disable uncrustify
+  set(ament_cmake_uncrustify_FOUND TRUE)
+  # disable xmllint
+  set(ament_cmake_xmllint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

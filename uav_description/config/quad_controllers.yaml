@@ -7,6 +7,9 @@ controller_manager:
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    magnetometer_broadcaster:
+      type: magnetometer_broadcaster/MagnetometerBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -25,6 +28,10 @@ controller_manager:
 imu_sensor_broadcaster:
   ros__parameters:
     frame_id: imu
+    sensor_name: base_imu
+
+magnetometer_broadcaster:
+  ros__parameters:
     sensor_name: base_imu
 
 angular_velocity:
