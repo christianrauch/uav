@@ -4,7 +4,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 
-namespace uav_controllers
+namespace uav::controllers
 {
 
 namespace attitude
@@ -180,7 +180,7 @@ private:
 
 }  // namespace attitude
 
-}  // namespace uav_controllers
+}  // namespace uav::controllers
 
 PLUGINLIB_EXPORT_CLASS(
-  uav_controllers::attitude::AttitudePID, controller_interface::ChainableControllerInterface)
+  uav::controllers::attitude::AttitudePID, controller_interface::ChainableControllerInterface)
