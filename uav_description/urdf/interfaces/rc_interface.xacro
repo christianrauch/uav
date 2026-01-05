@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<robot name="rc" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="rc">
+    <sensor name="rc">
+      <state_interface name="channel/1" />
+      <state_interface name="channel/2" />
+      <state_interface name="channel/3" />
+      <state_interface name="channel/4" />
+      <state_interface name="channel/5" />
+      <state_interface name="channel/6" />
+      <state_interface name="channel/7" />
+      <state_interface name="channel/8" />
+    </sensor>
+  </xacro:macro>
+</robot>
