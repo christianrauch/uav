@@ -4,7 +4,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 
-namespace uav_controllers
+namespace uav::controllers
 {
 
 namespace angular_velocity
@@ -155,7 +155,7 @@ private:
 
 }  // namespace angular_velocity
 
-}  // namespace uav_controllers
+}  // namespace uav::controllers
 
 PLUGINLIB_EXPORT_CLASS(
-  uav_controllers::angular_velocity::AngVelPID, controller_interface::ChainableControllerInterface)
+  uav::controllers::angular_velocity::AngVelPID, controller_interface::ChainableControllerInterface)
