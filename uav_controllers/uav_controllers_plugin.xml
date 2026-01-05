@@ -1,7 +1,7 @@
 <library path="control_allocation_wrench">
   <class
-    name="control_allocation/ControlAllocationWrench"
-    type="uav_controllers::control_allocation::ControlAllocationWrench"
+    name="uav/control_allocation/ControlAllocationWrench"
+    type="uav::control_allocation::ControlAllocationWrench"
     base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>
@@ -12,8 +12,8 @@
 
 <library path="control_allocation_simple">
   <class
-    name="control_allocation/ControlAllocationSimple"
-    type="uav_controllers::control_allocation::ControlAllocationSimple"
+    name="uav/control_allocation/ControlAllocationSimple"
+    type="uav::control_allocation::ControlAllocationSimple"
     base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>

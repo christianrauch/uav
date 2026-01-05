@@ -8,7 +8,7 @@ controller_manager:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
     control_allocation:
-      type: control_allocation/ControlAllocationSimple
+      type: uav/control_allocation/ControlAllocationSimple
 
     angular_velocity:
       type: uav_controllers/AngVelPID
