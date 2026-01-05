@@ -1,13 +1,28 @@
 from launch import LaunchDescription
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import (
+    Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression,
+)
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+
+    model_name_arg = DeclareLaunchArgument(
+        'model',
+        default_value='quad',
+    )
+
+    model_name = LaunchConfiguration('model')
+
+    xacro_filename = PythonExpression([
+        "'", model_name, "' + '.urdf.xacro'"
+    ])
+
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]), ' ',
-        PathJoinSubstitution([FindPackageShare('uav_description'), 'urdf', 'quad.urdf.xacro',]),
+        PathJoinSubstitution([FindPackageShare('uav_description'), 'urdf', xacro_filename,]),
     ])
 
     robot_controllers = PathJoinSubstitution([
@@ -58,6 +73,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        model_name_arg,
         robot_state_publisher_node,
         ros2_control_node,
         controller_spawner,
