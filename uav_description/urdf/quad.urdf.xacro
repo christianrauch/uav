@@ -96,7 +96,7 @@
 
     <ros2_control name="proxy_imu" type="sensor">
         <hardware>
-            <plugin>uav_hardware/ProxyIMU</plugin>
+            <plugin>uav/proxy/IMU</plugin>
             <param name="sensor_name">base_imu</param>
         </hardware>
         <xacro:imu name="base_imu"/>
@@ -104,14 +104,14 @@
 
     <ros2_control name="proxy_actuator" type="actuator">
         <hardware>
-            <plugin>uav_hardware/ProxyActuator</plugin>
+            <plugin>uav/proxy/Actuator</plugin>
         </hardware>
         <xacro:rotors/>
     </ros2_control>
 
     <ros2_control name="proxy_rc" type="sensor">
         <hardware>
-            <plugin>uav_hardware/ProxyRC</plugin>
+            <plugin>uav/proxy/RC</plugin>
         </hardware>
         <xacro:rc/>
     </ros2_control>

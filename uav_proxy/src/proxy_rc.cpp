@@ -3,7 +3,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 
-namespace uav_hardware
+namespace uav::proxy
 {
 
 class ProxyRC : public hardware_interface::SensorInterface
@@ -82,6 +82,6 @@ private:
 const std::string ProxyRC::sensor_name = "rc";
 const std::string ProxyRC::state_prefix = "channel";
 
-}  // namespace uav_hardware
+}  // namespace uav::proxy
 
-PLUGINLIB_EXPORT_CLASS(uav_hardware::ProxyRC, hardware_interface::SensorInterface)
+PLUGINLIB_EXPORT_CLASS(uav::proxy::ProxyRC, hardware_interface::SensorInterface)

@@ -3,7 +3,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 
-namespace uav_hardware
+namespace uav::proxy
 {
 
 class ProxyActuator : public hardware_interface::ActuatorInterface
@@ -69,6 +69,6 @@ private:
 
 const std::string ProxyActuator::actuator_prefix = "rotor";
 
-}  // namespace uav_hardware
+}  // namespace uav::proxy
 
-PLUGINLIB_EXPORT_CLASS(uav_hardware::ProxyActuator, hardware_interface::ActuatorInterface)
+PLUGINLIB_EXPORT_CLASS(uav::proxy::ProxyActuator, hardware_interface::ActuatorInterface)
