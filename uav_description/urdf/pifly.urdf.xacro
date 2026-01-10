@@ -39,6 +39,7 @@
     <hardware>
       <plugin>uav/drivers/MPU9250</plugin>
       <param name="sensor_name">base_imu</param>
+      <param name="bus">1</param>
       <param name="calibration_file">$(find uav_description)/calibration/pifly.yaml</param>
     </hardware>
     <xacro:imu name="base_imu" />

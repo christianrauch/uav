@@ -1,0 +1,9 @@
+<library path="imu_mpu9250">
+  <class name="uav/drivers/MPU9250"
+         type="uav::drivers::imu::MPU9250"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      MPU9250
+    </description>
+  </class>
+</library>
