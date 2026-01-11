@@ -1,4 +1,5 @@
 #pragma once
+#include <Fusion.h>
 #include <urdf/model.h>
 #include <Eigen/Geometry>
 #include <hardware_interface/sensor_interface.hpp>
@@ -80,6 +81,8 @@ public:
       };
     }
 
+    FusionAhrsInitialise(&fusion);
+
     if (!init_driver())
     {
       return CallbackReturn::FAILURE;
@@ -89,7 +92,7 @@ public:
   }
 
   hardware_interface::return_type read(
-    const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
+    const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
   {
     // reset IMU data
     imu = {};
@@ -116,6 +119,28 @@ public:
       {
         imu.orientation = ((*q_bi) * (*imu.orientation) * q_bi->conjugate()).normalized();
       }
+    }
+
+    if (!imu.orientation.has_value())
+    {
+      // fuse data and compute orientation
+      if (imu.magnetic_field.has_value())
+      {
+        FusionAhrsUpdate(
+          &fusion, *reinterpret_cast<FusionVector *>(imu.angular_velocity.data()),
+          *reinterpret_cast<FusionVector *>(imu.linear_acceleration.data()),
+          *reinterpret_cast<FusionVector *>(imu.magnetic_field->data()), period.seconds());
+      }
+      else
+      {
+        FusionAhrsUpdateNoMagnetometer(
+          &fusion, *reinterpret_cast<FusionVector *>(imu.angular_velocity.data()),
+          *reinterpret_cast<FusionVector *>(imu.linear_acceleration.data()), period.seconds());
+      }
+
+      const FusionQuaternion q = FusionAhrsGetQuaternion(&fusion);
+      imu.orientation = {q.element.w, q.element.x, q.element.y, q.element.z};
+      imu.orientation->normalize();
     }
 
     assert(imu.orientation.has_value() && std::abs(imu.orientation->norm() - 1) < 1e-6);
@@ -168,6 +193,7 @@ private:
   std::string sensor_name;
   urdf::Model model;
   std::optional<Eigen::Quaternionf> q_bi;
+  FusionAhrs fusion;
 };
 
 }  // namespace imu
