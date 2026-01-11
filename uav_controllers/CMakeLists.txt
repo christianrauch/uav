@@ -16,6 +16,7 @@ find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(controller_interface REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 find_package(control_toolbox REQUIRED)
@@ -82,6 +83,19 @@ target_link_libraries(mode_attitude PUBLIC
   controller_interface::controller_interface
 )
 
+add_library(magnetometer_broadcaster SHARED
+  src/magnetometer_broadcaster.cpp
+)
+target_link_libraries(magnetometer_broadcaster PUBLIC
+  controller_interface::controller_interface
+  hardware_interface::hardware_interface
+  pluginlib::pluginlib
+  rclcpp::rclcpp
+  rclcpp_lifecycle::rclcpp_lifecycle
+  realtime_tools::realtime_tools
+  ${sensor_msgs_TARGETS}
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
 install(TARGETS
@@ -91,6 +105,7 @@ install(TARGETS
   controller_orientation_pid
   controller_attitude_pid
   mode_attitude
+  magnetometer_broadcaster
   EXPORT ${PROJECT_NAME}Targets
 )
 
