@@ -162,6 +162,13 @@ public:
     set_state<double>(sensor_name + "/linear_acceleration.y", imu.linear_acceleration.y());
     set_state<double>(sensor_name + "/linear_acceleration.z", imu.linear_acceleration.z());
 
+    if (imu.magnetic_field.has_value())
+    {
+      set_state<double>(sensor_name + "/magnetic_field.x", imu.magnetic_field->x());
+      set_state<double>(sensor_name + "/magnetic_field.y", imu.magnetic_field->y());
+      set_state<double>(sensor_name + "/magnetic_field.z", imu.magnetic_field->z());
+    }
+
     return hardware_interface::return_type::OK;
   }
 
