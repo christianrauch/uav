@@ -64,11 +64,6 @@ def generate_launch_description():
         additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
             'imu_sensor_broadcaster',
-            'control_allocation',
-            'angular_velocity',
-            # 'angular_position',
-            'attitude',
-            'attitude_mode',
         ],
     )
 
