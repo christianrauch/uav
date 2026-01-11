@@ -7,6 +7,9 @@ controller_manager:
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    pose_broadcaster:
+      type: pose_broadcaster/PoseBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -26,6 +29,13 @@ imu_sensor_broadcaster:
   ros__parameters:
     frame_id: imu
     sensor_name: base_imu
+
+pose_broadcaster:
+  ros__parameters:
+    pose_name: x2
+    frame_id: world
+    tf:
+      child_frame_id: mujoco/x2
 
 angular_velocity:
   ros__parameters:
