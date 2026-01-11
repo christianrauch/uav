@@ -15,6 +15,8 @@ find_package(pluginlib REQUIRED)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(urdfdom_headers REQUIRED)
 
+add_subdirectory(imu_fusion)
+
 add_library(imu_base INTERFACE)
 target_include_directories(imu_base INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -23,13 +25,14 @@ target_link_libraries(imu_base INTERFACE
   hardware_interface::hardware_interface
   Eigen3::Eigen
   urdfdom_headers::urdfdom_headers
+  madgwick
 )
 target_compile_features(imu_base INTERFACE cxx_std_20)
 
 add_library(imu_nil src/imu_nil.cpp)
 target_link_libraries(imu_nil imu_base)
 
-install(TARGETS imu_base
+install(TARGETS imu_base madgwick
   EXPORT ${PROJECT_NAME}Targets
 )
 
