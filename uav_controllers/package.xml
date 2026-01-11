@@ -12,6 +12,7 @@
   <depend>controller_interface</depend>
   <depend>eigen</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>realtime_tools</depend>
   <depend>urdfdom_headers</depend>
   <depend>control_toolbox</depend>
