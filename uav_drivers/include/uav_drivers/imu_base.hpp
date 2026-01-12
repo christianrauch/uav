@@ -1,8 +1,49 @@
 #pragma once
 #include <Fusion.h>
 #include <urdf/model.h>
+#include <yaml-cpp/yaml.h>
 #include <Eigen/Geometry>
 #include <hardware_interface/sensor_interface.hpp>
+
+namespace YAML
+{
+template <>
+struct convert<Eigen::Matrix4f>
+{
+  static bool decode(const Node & node, Eigen::Matrix4f & mat)
+  {
+    if (!node.IsSequence() || node.size() != 16)
+    {
+      return false;
+    }
+
+    // convert row-major 16-element sequence to column-major 4x4 matrix
+    for (size_t i = 0; i < 16; ++i)
+    {
+      mat(i / 4, i % 4) = node[i].as<float>();
+    }
+    return true;
+  }
+};
+
+template <>
+struct convert<Eigen::Vector3f>
+{
+  static bool decode(const Node & node, Eigen::Vector3f & vec)
+  {
+    if (!node.IsSequence() || node.size() != 3)
+    {
+      return false;
+    }
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+      vec(i) = node[i].as<float>();
+    }
+    return true;
+  }
+};
+}  // namespace YAML
 
 namespace uav::drivers
 {
@@ -81,6 +122,101 @@ public:
       };
     }
 
+    // read calibration parameters
+    const std::string calibration_file_parameter_name = "calibration_file";
+    if (params.hardware_info.hardware_parameters.contains(calibration_file_parameter_name))
+    {
+      const YAML::Node calibration = YAML::LoadFile(
+        params.hardware_info.hardware_parameters.at(calibration_file_parameter_name));
+
+      if (calibration["gyroscope"])
+      {
+        if (!calibration["gyroscope"].IsSequence() || calibration["gyroscope"].size() != 3)
+        {
+          RCLCPP_FATAL_STREAM(
+            get_logger(), "gyroscope calibration must contain a sequence of 3 values");
+          return CallbackReturn::ERROR;
+        }
+
+        try
+        {
+          calib_gyroscope = calibration["gyroscope"].as<Eigen::Vector3f>();
+        }
+        catch (const YAML::BadConversion & e)
+        {
+          RCLCPP_FATAL_STREAM(
+            get_logger(), "Failed to parse gyroscope calibration vector: " << e.what());
+          return CallbackReturn::ERROR;
+        }
+      }
+
+      if (calibration["accelerometer"])
+      {
+        if (!calibration["accelerometer"].IsSequence() || calibration["accelerometer"].size() != 16)
+        {
+          RCLCPP_FATAL_STREAM(
+            get_logger(), "accelerometer calibration must contain a sequence of 16 values");
+          return CallbackReturn::ERROR;
+        }
+
+        try
+        {
+          calib_accelerometer = calibration["accelerometer"].as<Eigen::Matrix4f>();
+        }
+        catch (const YAML::BadConversion & e)
+        {
+          RCLCPP_FATAL_STREAM(
+            get_logger(), "Failed to parse accelerometer calibration matrix: " << e.what());
+          return CallbackReturn::ERROR;
+        }
+      }
+
+      if (calibration["magnetometer"])
+      {
+        if (!calibration["magnetometer"].IsSequence() || calibration["magnetometer"].size() != 16)
+        {
+          RCLCPP_FATAL_STREAM(
+            get_logger(), "magnetometer calibration must contain a sequence of 16 values");
+          return CallbackReturn::ERROR;
+        }
+
+        try
+        {
+          calib_magnetometer = calibration["magnetometer"].as<Eigen::Matrix4f>();
+        }
+        catch (const YAML::BadConversion & e)
+        {
+          RCLCPP_FATAL_STREAM(
+            get_logger(), "Failed to parse magnetometer calibration matrix: " << e.what());
+          return CallbackReturn::ERROR;
+        }
+      }
+
+      if (calib_gyroscope.has_value())
+      {
+        RCLCPP_INFO_STREAM(
+          get_logger(), std::endl
+                          << "gyroscope calibration:" << std::endl
+                          << (*calib_gyroscope).transpose());
+      }
+
+      if (calib_accelerometer.has_value())
+      {
+        RCLCPP_INFO_STREAM(
+          get_logger(), std::endl
+                          << "accelerometer calibration:" << std::endl
+                          << (*calib_accelerometer).matrix());
+      }
+
+      if (calib_magnetometer.has_value())
+      {
+        RCLCPP_INFO_STREAM(
+          get_logger(), std::endl
+                          << "magnetometer calibration:" << std::endl
+                          << (*calib_magnetometer).matrix());
+      }
+    }
+
     FusionAhrsInitialise(&fusion);
 
     if (!init_driver())
@@ -121,6 +257,24 @@ public:
       }
     }
 
+    // apply calibration rotate data in SI units
+    toSI();
+    if (calib_gyroscope.has_value())
+    {
+      imu.angular_velocity = imu.angular_velocity - (*calib_gyroscope);
+    }
+
+    if (calib_accelerometer.has_value())
+    {
+      imu.linear_acceleration = (*calib_accelerometer) * imu.linear_acceleration;
+    }
+
+    if (calib_magnetometer.has_value() && imu.magnetic_field.has_value())
+    {
+      (*imu.magnetic_field) = (*calib_magnetometer) * (*imu.magnetic_field);
+    }
+    fromSI();
+
     if (!imu.orientation.has_value())
     {
       // fuse data and compute orientation
@@ -145,12 +299,7 @@ public:
 
     assert(imu.orientation.has_value() && std::abs(imu.orientation->norm() - 1) < 1e-6);
 
-    imu.linear_acceleration *= 9.80665;              // g     -> m/s^2
-    imu.angular_velocity *= std::numbers::pi / 180;  // deg/s -> rad/s
-    if (imu.magnetic_field.has_value())
-    {
-      (*imu.magnetic_field) *= 1e-6;  // μT    -> T
-    }
+    toSI();
 
     set_state<double>(sensor_name + "/orientation.x", imu.orientation->x());
     set_state<double>(sensor_name + "/orientation.y", imu.orientation->y());
@@ -190,10 +339,38 @@ protected:
   virtual bool init_driver() = 0;
 
 private:
+  static constexpr float g0 = 9.80665;                      // m/s^2
+  static constexpr float deg2rad = std::numbers::pi / 180;  // rad/s per deg/s
+
+  void toSI()
+  {
+    // convert to SI units
+    imu.linear_acceleration *= g0;    // g     -> m/s^2
+    imu.angular_velocity *= deg2rad;  // deg/s -> rad/s
+    if (imu.magnetic_field.has_value())
+    {
+      (*imu.magnetic_field) *= 1e-6;  // μT    -> T
+    }
+  }
+
+  void fromSI()
+  {
+    // convert from SI units
+    imu.linear_acceleration /= g0;    // m/s^2 -> g
+    imu.angular_velocity /= deg2rad;  // rad/s -> deg/s
+    if (imu.magnetic_field.has_value())
+    {
+      (*imu.magnetic_field) /= 1e-6;  // T    -> μT
+    }
+  }
+
   std::string sensor_name;
   urdf::Model model;
   std::optional<Eigen::Quaternionf> q_bi;
   FusionAhrs fusion;
+  std::optional<Eigen::Vector3f> calib_gyroscope;
+  std::optional<Eigen::Affine3f> calib_accelerometer;
+  std::optional<Eigen::Affine3f> calib_magnetometer;
 };
 
 }  // namespace imu

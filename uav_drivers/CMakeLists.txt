@@ -14,6 +14,7 @@ find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(urdfdom_headers REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 add_subdirectory(imu_fusion)
 
@@ -26,6 +27,7 @@ target_link_libraries(imu_base INTERFACE
   Eigen3::Eigen
   urdfdom_headers::urdfdom_headers
   madgwick
+  yaml-cpp::yaml-cpp
 )
 target_compile_features(imu_base INTERFACE cxx_std_20)
 
