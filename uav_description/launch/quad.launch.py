@@ -67,11 +67,6 @@ def generate_launch_description():
             'fusion',
             'fusion_sensor_broadcaster',
             'magnetometer_broadcaster',
-            'control_allocation',
-            'angular_velocity',
-            # 'angular_position',
-            'attitude',
-            'attitude_mode',
         ],
     )
 
