@@ -230,13 +230,13 @@ public:
   hardware_interface::return_type read(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
   {
-    // reset IMU data
-    imu = {};
+    // reset orientation estimate
+    imu.orientation = {};
 
     // read new IMU data from device
     if (!read_imu_data())
     {
-      return hardware_interface::return_type::ERROR;
+      RCLCPP_ERROR_STREAM(get_logger(), "reading IMU data failed");
     }
 
     // apply sensor rotation
