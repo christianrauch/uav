@@ -219,6 +219,9 @@ public:
 
     FusionAhrsInitialise(&fusion);
 
+    // TODO: via param
+    fusion.settings.gain = 5;
+
     if (!init_driver())
     {
       return CallbackReturn::FAILURE;
