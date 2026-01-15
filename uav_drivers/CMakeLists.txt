@@ -13,6 +13,7 @@ find_package(rclcpp REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(Eigen3 REQUIRED NO_MODULE)
+find_package(yaml-cpp REQUIRED)
 
 add_library(imu_base SHARED src/imu_base.cpp)
 target_include_directories(imu_base PUBLIC
@@ -21,6 +22,7 @@ target_include_directories(imu_base PUBLIC
 target_link_libraries(imu_base PUBLIC
   hardware_interface::hardware_interface
   Eigen3::Eigen
+  yaml-cpp::yaml-cpp
 )
 target_compile_features(imu_base PUBLIC cxx_std_20)
 

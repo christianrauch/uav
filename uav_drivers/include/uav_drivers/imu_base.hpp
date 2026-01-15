@@ -35,6 +35,9 @@ private:
   static constexpr float deg2rad = std::numbers::pi / 180;  // rad/s per deg/s
 
   std::string sensor_name;
+  std::optional<Eigen::Vector3f> calib_gyroscope;
+  std::optional<Eigen::Affine3f> calib_accelerometer;
+  std::optional<Eigen::Affine3f> calib_magnetometer;
 };
 
 }  // namespace imu
