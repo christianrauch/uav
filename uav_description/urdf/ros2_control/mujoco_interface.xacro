@@ -23,6 +23,16 @@
       </hardware>
       <xacro:imu name="base_imu" />
       <xacro:rotors />
+
+      <sensor name="x2">
+        <state_interface name="position.x" />
+        <state_interface name="position.y" />
+        <state_interface name="position.z" />
+        <state_interface name="orientation.x" />
+        <state_interface name="orientation.y" />
+        <state_interface name="orientation.z" />
+        <state_interface name="orientation.w" />
+      </sensor>
     </ros2_control>
 
     <ros2_control name="proxy_rc" type="sensor">
