@@ -7,6 +7,12 @@ controller_manager:
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    fusion:
+      type: uav/fusion/FusionMadgwick
+
+    fusion_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -27,10 +33,21 @@ imu_sensor_broadcaster:
     frame_id: imu
     sensor_name: base_imu
 
+fusion:
+  ros__parameters:
+    sensor_name: base_imu
+    use_magnetometer: false
+    gain: 0.1
+
+fusion_sensor_broadcaster:
+  ros__parameters:
+    frame_id: base_link
+    sensor_name: fusion
+
 angular_velocity:
   ros__parameters:
     mixer: control_allocation
-    sensor_name: base_imu
+    sensor_name: fusion
     # https://en.wikipedia.org/wiki/Ziegler–Nichols_method
     # Kp = 0.2 * Ku
     # Ki = 0.4 * Ku / Tu
@@ -51,7 +68,7 @@ angular_position:
   ros__parameters:
     update_rate: 250
     velocity_controller_name: angular_velocity
-    sensor_name: base_imu
+    sensor_name: fusion
     gains:
       tau: 0.2
       roll.p: 0.4
@@ -61,7 +78,7 @@ angular_position:
 attitude:
   ros__parameters:
     velocity_controller_name: angular_velocity
-    sensor_name: base_imu
+    sensor_name: fusion
     gains:
       roll.p: 2.
       roll.d: 0.01
