@@ -19,7 +19,7 @@
     <child link="base_imu" />
   </joint>
 
-  <xacro:include filename="$(find uav_description)/urdf/ros2_control/proxy_interfaces.xacro" />
+  <xacro:include filename="$(find uav_description)/urdf/ros2_control/mujoco_interface.xacro" />
 
-  <xacro:proxy_interfaces />
+  <xacro:mujoco_interface />
 </robot>
