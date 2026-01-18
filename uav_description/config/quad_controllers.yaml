@@ -7,6 +7,9 @@ controller_manager:
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    magnetometer_broadcaster:
+      type: magnetometer_broadcaster/MagnetometerBroadcaster
+
     fusion:
       type: uav/fusion/FusionMadgwick
 
@@ -28,7 +31,17 @@ controller_manager:
     attitude_mode:
       type: uav/mode/AttitudeFlightMode
 
+# Note:
+# The raw IMU and magnetometer data is published in the sensor frame
+# and intended for calibration. The calibrated and rotated data is
+# published in the base frame for use by the controllers.
+
 imu_sensor_broadcaster:
+  ros__parameters:
+    frame_id: imu
+    sensor_name: base_imu
+
+magnetometer_broadcaster:
   ros__parameters:
     frame_id: imu
     sensor_name: base_imu
