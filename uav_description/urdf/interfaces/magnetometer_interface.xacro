@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="magnetometer" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="magnetometer" params="name">
+    <sensor name="${name}">
+      <state_interface name="magnetic_field.x"/>
+      <state_interface name="magnetic_field.y"/>
+      <state_interface name="magnetic_field.z"/>
+    </sensor>
+  </xacro:macro>
+</robot>
