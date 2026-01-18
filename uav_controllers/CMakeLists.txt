@@ -18,6 +18,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 find_package(control_toolbox REQUIRED)
+find_package(imu_filter_madgwick REQUIRED)
 
 add_library(control_allocation_wrench SHARED
   src/control_allocation_wrench.cpp
@@ -95,6 +96,17 @@ target_link_libraries(magnetometer_broadcaster PUBLIC
   ${sensor_msgs_TARGETS}
 )
 
+add_library(fusion_madgwick SHARED
+  src/fusion_madgwick.cpp
+)
+target_link_libraries(fusion_madgwick PUBLIC
+  controller_interface::controller_interface
+  hardware_interface::hardware_interface
+  Eigen3::Eigen
+  urdfdom_headers::urdfdom_headers
+  imu_filter_madgwick::imu_filter_madgwick
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
 install(TARGETS
@@ -105,6 +117,7 @@ install(TARGETS
   controller_attitude_pid
   mode_attitude
   magnetometer_broadcaster
+  fusion_madgwick
   EXPORT ${PROJECT_NAME}Targets
 )
 
