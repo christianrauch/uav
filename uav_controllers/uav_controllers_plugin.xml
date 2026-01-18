@@ -79,3 +79,15 @@
   </description>
   </class>
 </library>
+
+<library path="fusion_madgwick">
+  <class
+    name="uav/fusion/FusionMadgwick"
+    type="uav::controllers::fusion::FusionMadgwick"
+    base_class_type="controller_interface::ChainableControllerInterface"
+  >
+    <description>
+      Madgwick IMU fusion filter
+    </description>
+  </class>
+</library>
