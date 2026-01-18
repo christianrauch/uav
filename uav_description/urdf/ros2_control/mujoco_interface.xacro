@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<robot name="mujoco" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="mujoco_interface">
+    <xacro:include filename="$(find uav_description)/urdf/interfaces/imu_interface.xacro" />
+    <xacro:include filename="$(find uav_description)/urdf/interfaces/rotor_interface.xacro" />
+    <xacro:include filename="$(find uav_description)/urdf/interfaces/rc_interface.xacro" />
+
+    <xacro:macro name="rotors">
+      <xacro:rotor id="1" />
+      <xacro:rotor id="2" />
+      <xacro:rotor id="3" />
+      <xacro:rotor id="4" />
+    </xacro:macro>
+
+    <ros2_control name="mujoco" type="system">
+      <hardware>
+        <plugin>uav_mujoco_ros2_control/MuJoCoSystem</plugin>
+        <param name="imu_name">base_imu</param>
+        <!-- <param name="gravity">0</param> -->
+        <!-- <param name="initial_velocity">0, 0, 0, 0, 0.1, 0, 0</param> -->
+        <param name="mj_model_path">/home/christian/.cache/robot_descriptions/mujoco_menagerie/skydio_x2/scene.xml</param>
+        <param name="visualise" />
+      </hardware>
+      <xacro:imu name="base_imu" />
+      <xacro:rotors />
+    </ros2_control>
+
+    <ros2_control name="proxy_rc" type="sensor">
+      <hardware>
+        <plugin>uav/proxy/RC</plugin>
+      </hardware>
+      <xacro:rc />
+    </ros2_control>
+  </xacro:macro>
+</robot>
