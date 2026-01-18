@@ -13,6 +13,9 @@ controller_manager:
     fusion_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    magnetometer_broadcaster:
+      type: magnetometer_broadcaster/MagnetometerBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -36,12 +39,17 @@ imu_sensor_broadcaster:
 fusion:
   ros__parameters:
     sensor_name: base_imu
-    use_magnetometer: false
+    use_magnetometer: true
     gain: 0.5
 
 fusion_sensor_broadcaster:
   ros__parameters:
     frame_id: base_link
+    sensor_name: fusion
+
+magnetometer_broadcaster:
+  ros__parameters:
+    frame_id: imu
     sensor_name: fusion
 
 angular_velocity:
