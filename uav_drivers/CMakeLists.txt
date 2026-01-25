@@ -34,6 +34,9 @@ install(TARGETS imu_base
 add_subdirectory(mpu9250)
 pluginlib_export_plugin_description_file(hardware_interface mpu9250/mpu9250_plugin.xml)
 
+add_subdirectory(pca9685)
+pluginlib_export_plugin_description_file(hardware_interface pca9685/pca9685_plugin.xml)
+
 ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(rclcpp hardware_interface pluginlib)
 
