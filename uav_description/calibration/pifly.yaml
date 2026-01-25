@@ -1,9 +1,14 @@
 # gyroscope bias (rad/s) [1 x 3]
-gyroscope: null
+gyroscope: [-0.098960253119, -0.024120509879, -0.022811791003]
 
 # accelerometer bias (m/s²) and scale [4 x 4]
 # calibrated to standard gravity of g0 = 9.80665 m/s²
-accelerometer: null
+accelerometer: [
+  0.998860, 0.000000, 0.000000, -0.074051,
+  0.000000, 0.996399, 0.000000, 0.138126,
+  0.000000, 0.000000, 0.987005, 0.128619,
+  0, 0, 0, 1,
+]
 
 # magnetometer bias (T) and scale [4 x 4]
 # calibrated to total magnetic field
