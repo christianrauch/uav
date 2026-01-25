@@ -1,0 +1,9 @@
+<library path="pwm_pca9685">
+  <class name="uav/drivers/PCA9685"
+         type="uav::drivers::pwm::PCA9685"
+         base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      PCA9685
+    </description>
+  </class>
+</library>
