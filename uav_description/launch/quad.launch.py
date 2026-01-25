@@ -65,7 +65,7 @@ def generate_launch_description():
         arguments=[
             '--activate-as-group',
             'imu_sensor_broadcaster',
-            'magnetometer_broadcaster',
+            # 'magnetometer_broadcaster',
             'fusion',
             'fusion_sensor_broadcaster',
             'joint_state_broadcaster',
