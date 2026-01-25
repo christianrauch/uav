@@ -34,14 +34,11 @@
     <xacro:rotor id="4" />
   </xacro:macro>
 
-  <ros2_control name="imu" type="sensor">
+  <ros2_control name="proxy_imu" type="sensor">
     <hardware>
-      <plugin>uav/drivers/MPU9250</plugin>
+      <plugin>uav/proxy/IMU</plugin>
       <param name="sensor_name">base_imu</param>
-      <param name="bus">1</param>
-      <param name="calibration_file">$(find uav_description)/calibration/pifly.yaml</param>
     </hardware>
     <xacro:imu name="base_imu" />
-    <xacro:magnetometer name="base_imu" />
   </ros2_control>
 </robot>
