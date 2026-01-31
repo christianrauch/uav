@@ -123,6 +123,7 @@ public:
       RCLCPP_INFO_STREAM(get_node()->get_logger(), "IMU rotation: " << q_bi.coeffs().transpose());
     }
 
+    filter.setWorldFrame(WorldFrame::WorldFrame::NWU);
     filter.setAlgorithmGain(get_node()->declare_parameter<double>("gain", 0.1));
 
     return controller_interface::CallbackReturn::SUCCESS;
@@ -161,6 +162,14 @@ public:
                                 state_interfaces_[7].get_optional().value(),
                                 state_interfaces_[8].get_optional().value(),
                               };
+    }
+
+    if (!initialised)
+    {
+      // first run, initialize the filter orientation
+      const Eigen::Quaterniond init_q = ecompass(linear_acceleration, magnetic_field);
+      filter.setOrientation(init_q.w(), init_q.x(), init_q.y(), init_q.z());
+      initialised = true;
     }
 
     // run the filter update
@@ -215,8 +224,53 @@ public:
   }
 
 private:
+  static Eigen::Quaterniond ecompass(
+    const Eigen::Vector3d & linear_acceleration,
+    const std::optional<Eigen::Vector3d> magnetic_field = std::nullopt)
+  {
+    // Compute the orientatoin of the world frame from linear acceleration (gravity) and optionally
+    // magnetic field, using a right-handed North-West-Up (NWU) coordinate system with:
+    //   X axis pointing North
+    //   Y axis pointing West
+    //   Z axis pointing Up
+
+    const Eigen::Vector3d up = linear_acceleration.normalized();
+
+    Eigen::Matrix3d R;
+    R.col(2) = up;  // Up
+
+    if (magnetic_field.has_value())
+    {
+      const Eigen::Vector3d west = linear_acceleration.cross(*magnetic_field).normalized();
+      const Eigen::Vector3d north = west.cross(linear_acceleration).normalized();
+      R.col(0) = north;  // North
+      R.col(1) = west;   // West
+    }
+    else
+    {
+      // Use arbitrary orthogonal vectors for North (X) and West (Y).
+      const double xy2 = std::pow(up.x(), 2) + std::pow(up.y(), 2);
+      if (xy2 < 0.01)
+      {
+        // up is close to z axis
+        R.col(0) = Eigen::Vector3d::UnitX();
+        R.col(1) = (std::signbit(up.z()) ? -1 : +1) * Eigen::Vector3d::UnitY();
+      }
+      else
+      {
+        // general case
+        R.col(0) = Eigen::Vector3d{-up.y(), up.x(), 0};
+        R.col(1) = Eigen::Vector3d{-up.x() * up.z(), -up.y() * up.z(), xy2};
+      }
+    }
+
+    // return the pose of the body frame w.r.t. the world frame
+    return Eigen::Quaterniond(R).conjugate();
+  }
+
   std::string sensor_name;
   bool use_magnetometer = false;
+  bool initialised = false;
 
   urdf::Model model;
   // rotation from base to IMU frame
