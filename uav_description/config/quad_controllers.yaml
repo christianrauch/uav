@@ -8,6 +8,9 @@ controller_manager:
     magnetometer_broadcaster:
       type: magnetometer_broadcaster/MagnetometerBroadcaster
 
+    rotor_forward:
+      type: forward_command_controller/ForwardCommandController
+
     fusion:
       type: uav/fusion/FusionMadgwick
 
@@ -43,6 +46,20 @@ magnetometer_broadcaster:
   ros__parameters:
     frame_id: imu
     sensor_name: base_imu
+
+# The forward controller provides direct access to the rotors via
+# topic "/rotor_forward/commands" (std_msgs/msg/Float64MultiArray).
+# This is intended for debugging and ESC range calibration.
+rotor_forward:
+  ros__parameters:
+    update_rate: 100
+    joints: [
+      "rotor/1",
+      "rotor/2",
+      "rotor/3",
+      "rotor/4",
+    ]
+    interface_name: "velocity"
 
 fusion:
   ros__parameters:
