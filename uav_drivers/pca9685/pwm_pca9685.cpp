@@ -129,8 +129,8 @@ public:
     // RESTART bit.
     i2c_smbus_write_byte_data(fd, R_MODE1, oldmode);
     usleep(5000);
-    // set RESTART bit to 1
-    i2c_smbus_write_byte_data(fd, R_MODE1, oldmode | 0x80);
+    // set RESTART bit and AI (Auto-Increment) bit to 1
+    i2c_smbus_write_byte_data(fd, R_MODE1, oldmode | 0b1010'0000);
 
     RCLCPP_INFO_STREAM(
       get_logger(), "Initialised PCA9685 at I2C address " << hex(A_PCA9685) << " with "
