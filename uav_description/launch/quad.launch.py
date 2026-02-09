@@ -39,6 +39,13 @@ def generate_launch_description():
         ],
     )
 
+    joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        name='joint_state_publisher',
+        output='screen',
+    )
+
     ros2_control_node = Node(
         package='controller_manager',
         executable='ros2_control_node',
@@ -78,6 +85,7 @@ def generate_launch_description():
     return LaunchDescription([
         model_name_arg,
         robot_state_publisher_node,
+        joint_state_publisher_node,
         ros2_control_node,
         controller_spawner,
     ])
