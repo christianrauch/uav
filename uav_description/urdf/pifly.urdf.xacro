@@ -53,4 +53,12 @@
     </hardware>
     <xacro:rotors />
   </ros2_control>
+
+  <ros2_control name="rc" type="sensor">
+    <hardware>
+      <plugin>uav/drivers/SBUS</plugin>
+      <param name="device">/dev/ttyAMA0</param>
+    </hardware>
+    <xacro:rc />
+  </ros2_control>
 </robot>
