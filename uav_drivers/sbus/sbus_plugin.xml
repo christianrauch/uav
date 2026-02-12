@@ -1,0 +1,9 @@
+<library path="rc_sbus">
+  <class name="uav/drivers/SBUS"
+         type="uav::drivers::rc::SBUS"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      Futaba S.BUS receiver serial interface
+    </description>
+  </class>
+</library>

@@ -10,6 +10,7 @@
       <state_interface name="channel/6" />
       <state_interface name="channel/7" />
       <state_interface name="channel/8" />
+      <state_interface name="failsafe" data_type="bool" />
     </sensor>
   </xacro:macro>
 </robot>
