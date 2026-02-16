@@ -70,6 +70,7 @@ def generate_launch_description():
         executable='spawner',
         additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
+            '--activate-as-group',
             'imu_sensor_broadcaster',
             'magnetometer_broadcaster',
             'fusion',
