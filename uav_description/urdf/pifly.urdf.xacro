@@ -28,31 +28,9 @@
   <xacro:include filename="$(find uav_description)/urdf/interfaces/rotor_interface.xacro" />
   <xacro:include filename="$(find uav_description)/urdf/interfaces/rc_interface.xacro" />
 
-  <xacro:macro name="rotors">
-    <xacro:rotor id="1" />
-    <xacro:rotor id="2" />
-    <xacro:rotor id="3" />
-    <xacro:rotor id="4" />
-  </xacro:macro>
+  <xacro:include filename="$(find uav_description)/urdf/ros2_control/mujoco_interface.xacro" />
 
-  <ros2_control name="imu" type="sensor">
-    <hardware>
-      <plugin>uav/drivers/MPU9250</plugin>
-      <param name="sensor_name">base_imu</param>
-      <param name="bus">1</param>
-      <param name="calibration_file">$(find uav_description)/calibration/pifly.yaml</param>
-    </hardware>
-    <xacro:imu name="base_imu" />
-    <xacro:magnetometer name="base_imu" />
-  </ros2_control>
-
-  <ros2_control name="pwm" type="actuator" rw_rate="400">
-    <hardware>
-      <plugin>uav/drivers/PCA9685</plugin>
-      <param name="bus">1</param>
-    </hardware>
-    <xacro:rotors />
-  </ros2_control>
+  <xacro:mujoco_interface />
 
   <ros2_control name="rc" type="sensor">
     <hardware>
