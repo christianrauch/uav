@@ -63,6 +63,8 @@ public:
       return hardware_interface::CallbackReturn::ERROR;
     }
 
+    rotor_cmds.resize(nrotors);
+
     if (!info_.hardware_parameters.contains("bus"))
     {
       RCLCPP_FATAL_STREAM(get_logger(), "PCA9685 parameter 'bus' not set");
@@ -158,9 +160,20 @@ public:
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override
+  {
+    std::vector<hardware_interface::StateInterface> state_interfaces;
+    for (size_t i = 0; i < nrotors; ++i)
+    {
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+        actuator_prefix + "/" + std::to_string(i + 1), hardware_interface::HW_IF_VELOCITY,
+        &rotor_cmds[i]));
+    }
+    return state_interfaces;
+  }
+
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override
   {
-    rotor_cmds.resize(nrotors);
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (size_t i = 0; i < nrotors; ++i)
     {

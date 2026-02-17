@@ -17,6 +17,9 @@ controller_manager:
     fusion_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    rotor_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -71,6 +74,11 @@ fusion_sensor_broadcaster:
   ros__parameters:
     frame_id: base_link
     sensor_name: fusion
+
+rotor_state_broadcaster:
+  ros__parameters:
+    joints: [rotor/1, rotor/2, rotor/3, rotor/4]
+    interfaces: ["velocity"]
 
 angular_velocity:
   ros__parameters:
