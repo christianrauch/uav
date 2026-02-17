@@ -17,6 +17,9 @@ controller_manager:
     fusion_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
