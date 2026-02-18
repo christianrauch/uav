@@ -20,6 +20,9 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+    pose_broadcaster:
+      type: pose_broadcaster/PoseBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -74,6 +77,13 @@ fusion_sensor_broadcaster:
   ros__parameters:
     frame_id: base_link
     sensor_name: fusion
+
+pose_broadcaster:
+  ros__parameters:
+    pose_name: x2
+    frame_id: world
+    tf:
+      child_frame_id: mujoco/x2
 
 angular_velocity:
   ros__parameters:
