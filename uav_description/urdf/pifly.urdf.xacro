@@ -46,7 +46,7 @@
     <xacro:magnetometer name="base_imu" />
   </ros2_control>
 
-  <ros2_control name="pwm" type="actuator" rw_rate="400">
+  <ros2_control name="pwm" type="actuator" rw_rate="50">
     <hardware>
       <plugin>uav/drivers/PCA9685</plugin>
       <param name="bus">1</param>
