@@ -113,9 +113,26 @@ public:
     const Eigen::Map<Eigen::Vector4d> control_input(
       reference_interfaces_.data(), reference_interfaces_.size());
 
-    const Eigen::VectorXd w = M * control_input;
+    Eigen::VectorXd w = M * control_input;
 
-    RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "w [1]: " << w.transpose());
+    if (w.minCoeff() < 0)
+    {
+      Eigen::Index w_min_idx;
+      const double w_min = w.minCoeff(&w_min_idx);
+
+      // desaturation vector to ensure all commands are non-negative
+      const Eigen::VectorXd desat_thrust = M.col(0);
+
+      // move all values along the desaturation vector until the minimum command is zero
+      w -= w_min * desat_thrust / desat_thrust(w_min_idx);
+    }
+
+    if (w.maxCoeff() > 1)
+    {
+      w /= w.maxCoeff();
+    }
+
+    RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "w (sat) [1]: " << w.transpose());
 
     bool status_ok = true;
     for (std::size_t i = 0; i < nrotors; i++)
