@@ -87,6 +87,10 @@ rc_broadcaster:
   ros__parameters:
     interfaces: ["rc/channel/1", "rc/channel/2", "rc/channel/3", "rc/channel/4", "rc/channel/5", "rc/channel/6", "rc/channel/7", "rc/channel/8"]
 
+control_allocation:
+  ros__parameters:
+    min_output: 0.07
+
 angular_velocity:
   ros__parameters:
     mixer: control_allocation

@@ -88,6 +88,15 @@ public:
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
+    min_speed = get_node()->declare_parameter<double>("min_output", 0);
+
+    if (min_speed < 0)
+    {
+      RCLCPP_WARN_STREAM(
+        get_node()->get_logger(), "Minimum motor speed must be non-negative. Setting to 0.");
+      min_speed = 0;
+    }
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -125,7 +134,32 @@ public:
     const Eigen::Map<Eigen::Vector4d> control_input(
       reference_interfaces_.data(), reference_interfaces_.size());
 
-    const Eigen::VectorXd w = M * control_input;
+    Eigen::ArrayXd w = M * control_input;
+
+    // enforce a minimum motor speed
+    // This keeps the thrust direction (controls: roll, pitch, yaw) but increase overall thrust
+    // (controls: thrust) to satisfy the individual minimum motor speed.
+    Eigen::Index w_min_idx;
+    const double w_min = w.minCoeff(&w_min_idx);
+    if (w_min < min_speed)
+    {
+      // desaturation direction
+      const Eigen::ArrayXd desat_thrust = M.col(0);
+
+      // move all values along the desaturation vector until the minimum command is reached
+      w += (min_speed - w_min) * desat_thrust / desat_thrust[w_min_idx];
+    }
+
+    // scale motor command range [min_speed, MAX] to [min_speed, 1] (maxmimum of 1)
+    // This reduces thrust direction (controls: roll, pitch, yaw) to reduce individual motor speed.
+    const double w_max = w.maxCoeff();
+    if (w_max > 1)
+    {
+      w = min_speed + (w - min_speed) * (1 - min_speed) / (w_max - min_speed);
+    }
+
+    // scale all motors by thrust command
+    w = min_speed + (w - min_speed) * reference_interfaces_[0];
 
     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "w [1]: " << w.transpose());
 
@@ -145,6 +179,7 @@ private:
   Eigen::MatrixX4d M;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_control;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Twist> msg_control;
+  double min_speed = 0;
 
   static Eigen::MatrixX4d compute_M(const Eigen::MatrixX3d & motors)
   {
