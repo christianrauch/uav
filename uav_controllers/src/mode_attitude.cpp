@@ -36,6 +36,8 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
+    exported_state_interface_names_ = {"active"};
+    state_interfaces_values_.resize(exported_state_interface_names_.size());
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -87,6 +89,8 @@ public:
     status_ok &= command_interfaces_[1].set_value(p);
     status_ok &= command_interfaces_[2].set_value(y);
     status_ok &= command_interfaces_[3].set_value(t / 2);
+
+    state_interfaces_values_[0] = state_interfaces_[4].get_optional().value_or(0);
 
     return controller_interface::return_type(!status_ok);
   }
