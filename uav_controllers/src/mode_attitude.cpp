@@ -1,10 +1,10 @@
-#include <controller_interface/controller_interface.hpp>
+#include <controller_interface/chainable_controller_interface.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 namespace uav::flight_mode
 {
 
-class AttitudeFlightMode : public controller_interface::ControllerInterface
+class AttitudeFlightMode : public controller_interface::ChainableControllerInterface
 {
 public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override
@@ -64,7 +64,15 @@ public:
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
-  controller_interface::return_type update(
+  bool on_set_chained_mode(bool /*chained_mode*/) override { return true; }
+
+  controller_interface::return_type update_reference_from_subscribers(
+    const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
+  {
+    return controller_interface::return_type::OK;
+  }
+
+  controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
     const double max = max_tilt * std::numbers::pi / 180;
@@ -107,4 +115,4 @@ private:
 }  // namespace uav::flight_mode
 
 PLUGINLIB_EXPORT_CLASS(
-  uav::flight_mode::AttitudeFlightMode, controller_interface::ControllerInterface)
+  uav::flight_mode::AttitudeFlightMode, controller_interface::ChainableControllerInterface)

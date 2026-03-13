@@ -62,7 +62,7 @@
   <class
     name="uav/mode/AttitudeFlightMode"
     type="uav::flight_mode::AttitudeFlightMode"
-    base_class_type="controller_interface::ControllerInterface"
+    base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>
       flight mode mapping RC channels to attitude, yaw rate, and thrust
