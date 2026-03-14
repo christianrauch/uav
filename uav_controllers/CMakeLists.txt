@@ -95,6 +95,16 @@ target_link_libraries(magnetometer_broadcaster PUBLIC
   ${sensor_msgs_TARGETS}
 )
 
+add_library(rc_broadcaster SHARED
+  src/rc_broadcaster.cpp
+)
+target_link_libraries(rc_broadcaster PUBLIC
+  controller_interface::controller_interface
+  pluginlib::pluginlib
+  rclcpp::rclcpp
+  rclcpp_lifecycle::rclcpp_lifecycle
+)
+
 add_library(fusion_madgwick SHARED
   src/fusion_madgwick.cpp
 )
@@ -116,6 +126,7 @@ install(TARGETS
   controller_attitude_pid
   mode_attitude
   magnetometer_broadcaster
+  rc_broadcaster
   fusion_madgwick
   EXPORT ${PROJECT_NAME}Targets
 )

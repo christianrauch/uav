@@ -80,6 +80,16 @@
   </class>
 </library>
 
+<library path="rc_broadcaster">
+  <class name="rc_broadcaster/RCBroadcaster"
+         type="rc_broadcaster::RCBroadcaster"
+         base_class_type="controller_interface::ControllerInterface">
+  <description>
+      This controller publishes the RC values as mavros_msgs/msg/RCOut message.
+  </description>
+  </class>
+</library>
+
 <library path="fusion_madgwick">
   <class
     name="uav/fusion/FusionMadgwick"
