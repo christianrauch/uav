@@ -116,7 +116,7 @@ controller_interface::return_type RCBroadcaster::update(
         auto val = interface.get_optional();
         if (val.has_value() && !std::isnan(val.value()))
         {
-          state_message_.channels[i - 1] = static_cast<uint16_t>(val.value());
+          state_message_.channels[i - 1] = static_cast<uint16_t>(val.value()*1000);
         }
       }
     }
