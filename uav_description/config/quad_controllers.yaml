@@ -20,6 +20,9 @@ controller_manager:
     rotor_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+    rc_broadcaster:
+      type: state_interfaces_broadcaster/StateInterfacesBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -79,6 +82,10 @@ rotor_state_broadcaster:
   ros__parameters:
     joints: [rotor/1, rotor/2, rotor/3, rotor/4]
     interfaces: ["velocity"]
+
+rc_broadcaster:
+  ros__parameters:
+    interfaces: ["rc/channel/1", "rc/channel/2", "rc/channel/3", "rc/channel/4", "rc/channel/5", "rc/channel/6", "rc/channel/7", "rc/channel/8"]
 
 angular_velocity:
   ros__parameters:
