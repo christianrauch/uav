@@ -70,6 +70,8 @@ def generate_launch_description():
             'fusion_sensor_broadcaster',
             'rotor_state_broadcaster',
             'rc_broadcaster',
+            'joint_state_broadcaster',
+            # 'pose_broadcaster',
             'control_allocation',
             'angular_velocity',
             # 'angular_position',

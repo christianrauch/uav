@@ -23,6 +23,9 @@ controller_manager:
     rc_broadcaster:
       type: state_interfaces_broadcaster/StateInterfacesBroadcaster
 
+    pose_broadcaster:
+      type: pose_broadcaster/PoseBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
@@ -86,6 +89,13 @@ rotor_state_broadcaster:
 rc_broadcaster:
   ros__parameters:
     interfaces: ["rc/channel/1", "rc/channel/2", "rc/channel/3", "rc/channel/4", "rc/channel/5", "rc/channel/6", "rc/channel/7", "rc/channel/8"]
+
+pose_broadcaster:
+  ros__parameters:
+    pose_name: x2
+    frame_id: world
+    tf:
+      child_frame_id: mujoco/x2
 
 angular_velocity:
   ros__parameters:
