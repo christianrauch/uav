@@ -20,6 +20,9 @@ controller_manager:
     rotor_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+    rc_broadcaster:
+      type: rc_broadcaster/RCBroadcaster
+
     control_allocation:
       type: uav/control_allocation/ControlAllocationSimple
 
