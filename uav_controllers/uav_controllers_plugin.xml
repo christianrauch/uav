@@ -92,14 +92,14 @@
   </class>
 </library>
 
-<library path="controller_arming">
+<library path="arming">
   <class
-    name="uav/controllers/ControllerArming"
-    type="uav::controllers::arming::ControllerArming"
+    name="uav/controllers/Arming"
+    type="uav::controllers::arming::Arming"
     base_class_type="controller_interface::ChainableControllerInterface"
   >
     <description>
-      Arming controller parsing RC channels to export active state
+      arming and disarming the UAV
     </description>
   </class>
 </library>

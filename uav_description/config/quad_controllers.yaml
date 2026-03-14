@@ -39,7 +39,7 @@ controller_manager:
       type: uav/mode/AttitudeFlightMode
 
     arming:
-      type: uav/controllers/ControllerArming
+      type: uav/controllers/Arming
 
 # Note:
 # The raw IMU and magnetometer data is published in the sensor frame

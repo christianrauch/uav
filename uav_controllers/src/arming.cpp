@@ -6,7 +6,7 @@
 namespace uav::controllers::arming
 {
 
-class ControllerArming : public controller_interface::ChainableControllerInterface
+class Arming : public controller_interface::ChainableControllerInterface
 {
 public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override
@@ -16,9 +16,7 @@ public:
 
   controller_interface::InterfaceConfiguration state_interface_configuration() const override
   {
-    std::vector<std::string> interface_names = {
-      "rc/channel/" + std::to_string(arming_channel_)
-    };
+    std::vector<std::string> interface_names = {"rc/channel/" + std::to_string(arming_channel_)};
     return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
   }
 
@@ -48,10 +46,10 @@ public:
   {
     // read RC channel
     double channel_value = state_interfaces_.front().get_optional().value_or(0.0);
-    
+
     // set exported state interface value to 1 if channel > 0.5, else 0
     state_interfaces_values_[0] = channel_value > 0.5 ? 1.0 : 0.0;
-    
+
     return controller_interface::return_type::OK;
   }
 
@@ -62,4 +60,4 @@ private:
 }  // namespace uav::controllers::arming
 
 PLUGINLIB_EXPORT_CLASS(
-  uav::controllers::arming::ControllerArming, controller_interface::ChainableControllerInterface)
+  uav::controllers::arming::Arming, controller_interface::ChainableControllerInterface)

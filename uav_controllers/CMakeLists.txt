@@ -106,10 +106,10 @@ target_link_libraries(fusion_madgwick PUBLIC
   imu_filter_madgwick::imu_filter_madgwick
 )
 
-add_library(controller_arming SHARED
-  src/controller_arming.cpp
+add_library(arming SHARED
+  src/arming.cpp
 )
-target_link_libraries(controller_arming PUBLIC
+target_link_libraries(arming PUBLIC
   controller_interface::controller_interface
   hardware_interface::hardware_interface
 )
@@ -125,7 +125,7 @@ install(TARGETS
   mode_attitude
   magnetometer_broadcaster
   fusion_madgwick
-  controller_arming
+  arming
   EXPORT ${PROJECT_NAME}Targets
 )
 
