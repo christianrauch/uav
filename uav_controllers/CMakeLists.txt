@@ -19,6 +19,7 @@ find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 find_package(control_toolbox REQUIRED)
 find_package(imu_filter_madgwick REQUIRED)
+find_package(mavros_msgs REQUIRED)
 
 add_library(control_allocation_wrench SHARED
   src/control_allocation_wrench.cpp
@@ -103,6 +104,8 @@ target_link_libraries(rc_broadcaster PUBLIC
   pluginlib::pluginlib
   rclcpp::rclcpp
   rclcpp_lifecycle::rclcpp_lifecycle
+  realtime_tools::realtime_tools
+  ${mavros_msgs_TARGETS}
 )
 
 add_library(fusion_madgwick SHARED
