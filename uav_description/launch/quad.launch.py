@@ -75,6 +75,7 @@ def generate_launch_description():
             # 'angular_position',
             'attitude',
             'attitude_mode',
+            'arming',
         ],
     )
 

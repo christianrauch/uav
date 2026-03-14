@@ -106,6 +106,14 @@ target_link_libraries(fusion_madgwick PUBLIC
   imu_filter_madgwick::imu_filter_madgwick
 )
 
+add_library(controller_arming SHARED
+  src/controller_arming.cpp
+)
+target_link_libraries(controller_arming PUBLIC
+  controller_interface::controller_interface
+  hardware_interface::hardware_interface
+)
+
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
 
 install(TARGETS
@@ -117,6 +125,7 @@ install(TARGETS
   mode_attitude
   magnetometer_broadcaster
   fusion_madgwick
+  controller_arming
   EXPORT ${PROJECT_NAME}Targets
 )
 

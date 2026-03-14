@@ -38,6 +38,9 @@ controller_manager:
     attitude_mode:
       type: uav/mode/AttitudeFlightMode
 
+    arming:
+      type: uav/controllers/ControllerArming
+
 # Note:
 # The raw IMU and magnetometer data is published in the sensor frame
 # and intended for calibration. The calibrated and rotated data is
@@ -135,3 +138,7 @@ attitude_mode:
     mixer: control_allocation
     rpyt_channels: [2, 3, 4, 1]
     max_tilt: 45.
+
+arming:
+  ros__parameters:
+    arming_channel: 5
