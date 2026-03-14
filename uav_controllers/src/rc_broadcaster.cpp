@@ -1,6 +1,7 @@
 // base on the "imu_sensor_broadcaster" package (Apache License, Version 2.0) by Victor Lopez
 // https://github.com/ros-controls/ros2_controllers/tree/4.34.0/imu_sensor_broadcaster
 
+#include <algorithm>
 #include <cmath>
 #include <controller_interface/controller_interface.hpp>
 #include <mavros_msgs/msg/rc_out.hpp>
@@ -38,7 +39,12 @@ protected:
   rclcpp::Publisher<mavros_msgs::msg::RCOut>::SharedPtr sensor_state_publisher_;
   std::unique_ptr<StatePublisher> realtime_publisher_;
   mavros_msgs::msg::RCOut state_message_;
+
+  static const std::string rc_prefix;
+  uint8_t nchannels = 0;
 };
+
+const std::string RCBroadcaster::rc_prefix = "rc/channel/";
 
 controller_interface::CallbackReturn RCBroadcaster::on_init() { return CallbackReturn::SUCCESS; }
 
@@ -61,7 +67,6 @@ controller_interface::CallbackReturn RCBroadcaster::on_configure(
 
   state_message_.header.frame_id =
     get_node()->declare_parameter<std::string>("frame_id", std::string{});
-  state_message_.channels.resize(8);
 
   RCLCPP_DEBUG(get_node()->get_logger(), "configure successful");
   return CallbackReturn::SUCCESS;
@@ -77,17 +82,19 @@ controller_interface::InterfaceConfiguration RCBroadcaster::command_interface_co
 controller_interface::InterfaceConfiguration RCBroadcaster::state_interface_configuration() const
 {
   controller_interface::InterfaceConfiguration state_interfaces_config;
-  state_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  for (int i = 1; i <= 8; ++i)
-  {
-    state_interfaces_config.names.push_back("rc/channel/" + std::to_string(i));
-  }
+  state_interfaces_config.type = controller_interface::interface_configuration_type::ALL;
   return state_interfaces_config;
 }
 
 controller_interface::CallbackReturn RCBroadcaster::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
+  nchannels = std::count_if(
+    state_interfaces_.cbegin(), state_interfaces_.cend(),
+    [](const auto & iface) { return iface.get_name().substr(0, rc_prefix.size()) == rc_prefix; });
+
+  state_message_.channels.resize(nchannels);
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -102,13 +109,14 @@ controller_interface::return_type RCBroadcaster::update(
 {
   for (const auto & interface : state_interfaces_)
   {
-    for (size_t i = 1; i <= 8; ++i)
+    for (size_t i = 1; i <= nchannels; ++i)
     {
-      if (interface.get_name() == "rc/channel/" + std::to_string(i))
+      if (interface.get_name() == rc_prefix + std::to_string(i))
       {
-        if (!std::isnan(interface.get_value()))
+        auto val = interface.get_optional();
+        if (val.has_value() && !std::isnan(val.value()))
         {
-          state_message_.channels[i - 1] = static_cast<uint16_t>(interface.get_value());
+          state_message_.channels[i - 1] = static_cast<uint16_t>(val.value());
         }
       }
     }
