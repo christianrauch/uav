@@ -82,11 +82,7 @@ controller_interface::InterfaceConfiguration RCBroadcaster::command_interface_co
 controller_interface::InterfaceConfiguration RCBroadcaster::state_interface_configuration() const
 {
   controller_interface::InterfaceConfiguration state_interfaces_config;
-  state_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  for (int i = 1; i <= nchannels; ++i)
-  {
-    state_interfaces_config.names.push_back("rc/channel/" + std::to_string(i));
-  }
+  state_interfaces_config.type = controller_interface::interface_configuration_type::ALL;
   return state_interfaces_config;
 }
 
