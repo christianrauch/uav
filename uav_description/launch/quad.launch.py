@@ -83,10 +83,32 @@ def generate_launch_description():
         ],
     )
 
+    mode_manager_node = Node(
+        package='uav_mode_manager',
+        executable='mode_manager_node',
+        name='mode_manager',
+        output='screen',
+        additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
+        parameters=[
+            {'mode_channel_id': 6},
+            {'modes': ['none', 'attitude', '']},
+            {'mode_controllers': {
+                'attitude': [
+                    'control_allocation', 'angular_velocity', 'attitude', 'attitude_mode',
+                ],
+            }},
+        ],
+        remappings=[
+            ('~/names', '/rc_broadcaster/names'),
+            ('~/values', '/rc_broadcaster/values'),
+        ],
+    )
+
     return LaunchDescription([
         model_name_arg,
         robot_state_publisher_node,
         ros2_control_node,
         controller_spawner,
         controller_spawner_inactive,
+        mode_manager_node,
     ])
