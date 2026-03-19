@@ -91,6 +91,18 @@ public:
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) override
+  {
+    // stop all motors
+    bool status_ok = true;
+    for (hardware_interface::LoanedCommandInterface & command_interface : command_interfaces_)
+    {
+      status_ok &= command_interface.set_value(0.);
+    }
+    return status_ok ? controller_interface::CallbackReturn::SUCCESS
+                     : controller_interface::CallbackReturn::ERROR;
+  }
+
   controller_interface::return_type update_reference_from_subscribers(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
