@@ -14,17 +14,28 @@
 
     <ros2_control name="mujoco" type="system">
       <hardware>
-        <plugin>uav_mujoco_ros2_control/MuJoCoSystem</plugin>
-        <param name="imu_name">base_imu</param>
+        <plugin>mujoco_ros2_control/MujocoSystemInterface</plugin>
+<!--        <param name="imu_name">base_imu</param>-->
         <!-- <param name="gravity">0</param> -->
         <!-- <param name="initial_velocity">0, 0, 0, 0, 0.1, 0, 0</param> -->
-        <param name="mj_model_path">/home/christian/.cache/robot_descriptions/mujoco_menagerie/skydio_x2/scene.xml</param>
-        <param name="visualise" />
+<!--        <param name="mj_model_path">/home/christian/.cache/robot_descriptions/mujoco_menagerie/skydio_x2/scene.xml</param>-->
+<!--        <param name="visualise" />-->
+
+<!--        <param name="mujoco_model_topic">/mujoco_robot_description</param>-->
+<!--        <param name="mujoco_model_topic">/robot_description</param>-->
+<!--        <param name="mujoco_model">blaaa</param>-->
+        <param name="mujoco_model">$(find uav_description)/mujoco/skydio_x2/scene.xml</param>
+        <param name="headless">false</param>
+<!--        <param name="odom_free_joint_name">floating_base_joint</param>-->
+<!--        <param name="odom_topic">/simulator/floating_base_state</param>-->
+
+        <param name="linear_acceleration_mjcf_suffix">_linacc</param>
+
       </hardware>
       <xacro:imu name="base_imu" />
       <xacro:rotors />
 
-      <sensor name="x2">
+<!--      <sensor name="x2">
         <state_interface name="position.x" />
         <state_interface name="position.y" />
         <state_interface name="position.z" />
@@ -32,7 +43,7 @@
         <state_interface name="orientation.y" />
         <state_interface name="orientation.z" />
         <state_interface name="orientation.w" />
-      </sensor>
+      </sensor>-->
     </ros2_control>
 
     <ros2_control name="proxy_rc" type="sensor">
