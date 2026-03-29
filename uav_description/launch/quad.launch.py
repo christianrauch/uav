@@ -52,10 +52,6 @@ def generate_launch_description():
             # '--log-level', 'angular_position:=debug',
             # '--log-level', 'attitude:=debug',
         ],
-        remappings=[
-            ('/proxy_imu/imu', '/mujoco_drone_simulator/imu'),
-            ('/proxy_actuator/actuators', '/mujoco_drone_simulator/actuators'),
-        ],
     )
 
     controller_spawner = Node(
