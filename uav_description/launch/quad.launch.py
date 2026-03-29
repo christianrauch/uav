@@ -47,6 +47,8 @@ def generate_launch_description():
         additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
             '--ros-args',
+            '--log-level', 'controller_manager:=warn',
+            '--log-level', 'resource_manager:=warn',
             # '--log-level', 'control_allocation:=debug',
             # '--log-level', 'angular_velocity:=debug',
             # '--log-level', 'angular_position:=debug',
