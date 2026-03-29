@@ -11,7 +11,7 @@ def generate_launch_description():
 
     model_name_arg = DeclareLaunchArgument(
         'model',
-        default_value='quad',
+        default_value='pifly',
     )
 
     model_name = LaunchConfiguration('model')
