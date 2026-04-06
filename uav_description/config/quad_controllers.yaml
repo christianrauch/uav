@@ -29,6 +29,9 @@ controller_manager:
     angular_velocity:
       type: uav/controllers/AngVelPID
 
+    angular_velocity_reference_broadcaster:
+      type: command_interfaces_broadcaster/CommandInterfacesBroadcaster
+
     angular_position:
       type: uav/controllers/AngPosPID
 
@@ -111,10 +114,19 @@ angular_velocity:
       pitch.d: 0.00064
       yaw.p: 3.0
 
+angular_velocity_reference_broadcaster:
+  ros__parameters:
+    controller_name: "angular_velocity"
+    command_interfaces: [
+      "angular_velocity.x",
+      "angular_velocity.y",
+      "angular_velocity.z",
+    ]
+
 angular_position:
   ros__parameters:
     update_rate: 250
-    velocity_controller_name: angular_velocity
+    velocity_controller_name: angular_velocity_reference_broadcaster
     sensor_name: fusion
     gains:
       tau: 0.2
@@ -124,7 +136,7 @@ angular_position:
 
 attitude:
   ros__parameters:
-    velocity_controller_name: angular_velocity
+    velocity_controller_name: angular_velocity_reference_broadcaster
     sensor_name: fusion
     gains:
       roll.p: 2.
