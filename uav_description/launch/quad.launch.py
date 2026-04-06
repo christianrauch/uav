@@ -72,6 +72,7 @@ def generate_launch_description():
             'rc_broadcaster',
             'control_allocation',
             'angular_velocity',
+            'angular_velocity_reference_broadcaster',
             'attitude',
             'attitude_mode',
         ],
@@ -88,7 +89,7 @@ def generate_launch_description():
             {'modes': ['none', 'attitude', '']},
             {'mode_controllers': {
                 'attitude': [
-                    'control_allocation', 'angular_velocity', 'attitude', 'attitude_mode',
+                    'control_allocation', 'angular_velocity', 'angular_velocity_reference_broadcaster', 'attitude', 'attitude_mode',
                 ],
             }},
         ],
