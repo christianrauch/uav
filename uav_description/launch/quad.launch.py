@@ -67,15 +67,6 @@ def generate_launch_description():
             'fusion_sensor_broadcaster',
             'rotor_state_broadcaster',
             'rc_broadcaster',
-        ],
-    )
-
-    controller_spawner_inactive = Node(
-        package='controller_manager',
-        executable='spawner',
-        additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
-        arguments=[
-            '--inactive',
             'control_allocation',
             'angular_velocity',
             'attitude',
@@ -114,6 +105,5 @@ def generate_launch_description():
         robot_state_publisher_node,
         ros2_control_node,
         controller_spawner,
-        controller_spawner_inactive,
         delayed_mode_manager,
     ])
