@@ -4,6 +4,7 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
+#include <uav_controllers/control_allocation_simple_parameters.hpp>
 
 namespace uav::control_allocation
 {
@@ -41,6 +42,8 @@ public:
     sub_control = get_node()->create_subscription<geometry_msgs::msg::Twist>(
       "~/twist", 1,
       [this](const geometry_msgs::msg::Twist::SharedPtr msg) -> void { msg_control.set(*msg); });
+
+    param_listener = std::make_shared<ParamListener>(get_node());
 
     // parse the robot description
     model.initString(get_robot_description());
@@ -88,15 +91,7 @@ public:
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    min_speed = get_node()->declare_parameter<double>("min_output", 0);
-
-    if (min_speed < 0)
-    {
-      RCLCPP_WARN_STREAM(
-        get_node()->get_logger(), "Minimum motor speed must be non-negative. Setting to 0.");
-      min_speed = 0;
-    }
-
+    min_speed = param_listener->get_params().min_output;
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -179,6 +174,7 @@ private:
   Eigen::MatrixX4d M;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_control;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Twist> msg_control;
+  std::shared_ptr<ParamListener> param_listener;
   double min_speed = 0;
 
   static Eigen::MatrixX4d compute_M(const Eigen::MatrixX3d & motors)
