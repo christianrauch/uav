@@ -1,0 +1,21 @@
+uav::controllers::fusion:
+  sensor_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of the IMU sensor"
+  use_magnetometer:
+    type: bool
+    default_value: false
+    read_only: true
+    description:
+      "Fuse magnetometer into orientation estimate."
+  gain:
+    type: double
+    default_value: 0
+    validation:
+      bounds<>: [0, 1]
+    description:
+      "Madgwick filter gain."
