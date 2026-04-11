@@ -53,34 +53,6 @@ public:
     param_listener->setUserCallback([this](const Params & params)
                                     { filter.setAlgorithmGain(params.gain); });
 
-    use_magnetometer = param_listener->get_params().use_magnetometer;
-
-    exported_state_interface_names_ = {
-      // gyroscope
-      "angular_velocity.x",
-      "angular_velocity.y",
-      "angular_velocity.z",
-      // accelerometer
-      "linear_acceleration.x",
-      "linear_acceleration.y",
-      "linear_acceleration.z",
-      // orientation
-      "orientation.w",
-      "orientation.x",
-      "orientation.y",
-      "orientation.z",
-    };
-    if (use_magnetometer)
-    {
-      exported_state_interface_names_.insert(
-        exported_state_interface_names_.end(), {
-                                                 // magnetometer
-                                                 "magnetic_field.x",
-                                                 "magnetic_field.y",
-                                                 "magnetic_field.z",
-                                               });
-    }
-
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -90,6 +62,17 @@ public:
     const Params params = param_listener->get_params();
 
     sensor_name = params.sensor_name;
+
+    use_magnetometer = params.use_magnetometer;
+
+    exported_state_interface_names_.assign(
+      state_interface_names.begin(), state_interface_names.end());
+    if (use_magnetometer)
+    {
+      exported_state_interface_names_.insert(
+        exported_state_interface_names_.end(), state_interface_names_magnetometer.begin(),
+        state_interface_names_magnetometer.end());
+    }
 
     // get rotation between base link and IMU link
     if (const urdf::LinkConstSharedPtr imu_link = model.getLink(sensor_name))
@@ -271,6 +254,29 @@ private:
   bool use_magnetometer = false;
   std::shared_ptr<ParamListener> param_listener;
   bool initialised = false;
+
+  static constexpr std::array<std::string_view, 10> state_interface_names = {
+    // gyroscope
+    "angular_velocity.x",
+    "angular_velocity.y",
+    "angular_velocity.z",
+    // accelerometer
+    "linear_acceleration.x",
+    "linear_acceleration.y",
+    "linear_acceleration.z",
+    // orientation
+    "orientation.w",
+    "orientation.x",
+    "orientation.y",
+    "orientation.z",
+  };
+
+  static constexpr std::array<std::string_view, 3> state_interface_names_magnetometer = {
+    // magnetometer
+    "magnetic_field.x",
+    "magnetic_field.y",
+    "magnetic_field.z",
+  };
 
   urdf::Model model;
   // rotation from base to IMU frame
