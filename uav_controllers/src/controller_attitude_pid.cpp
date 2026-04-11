@@ -42,14 +42,6 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
-    exported_reference_interface_names_ = {
-      "roll",
-      "pitch",
-      "yaw_rate",
-    };
-    // levelled and no yaw rotation by default
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
-
     param_listener = std::make_shared<ParamListener>(get_node());
 
     param_listener->setUserCallback(
@@ -74,6 +66,11 @@ public:
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
     const Params params = param_listener->get_params();
+
+    exported_reference_interface_names_.assign(
+      reference_interface_names.begin(), reference_interface_names.end());
+    // levelled and no yaw rotation by default
+    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
 
     velocity_controller_name = params.velocity_controller_name;
     sensor_name = params.sensor_name;
@@ -167,6 +164,12 @@ private:
   }
 
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
+
+  static constexpr std::array<std::string_view, 3> reference_interface_names = {
+    "roll",
+    "pitch",
+    "yaw_rate",
+  };
 
   std::string velocity_controller_name;
   std::string sensor_name;
