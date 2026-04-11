@@ -3,6 +3,7 @@
 #include <geometry_msgs/msg/vector3.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
+#include <uav_controllers/controller_angular_velocity_pid_parameters.hpp>
 
 namespace uav::controllers
 {
@@ -16,9 +17,9 @@ public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override
   {
     const std::vector<std::string> interface_names = {
-      mixer_name + "/" + cmd_order[0],
-      mixer_name + "/" + cmd_order[1],
-      mixer_name + "/" + cmd_order[2],
+      mixer_name + "/" + command_interfaces[0],
+      mixer_name + "/" + command_interfaces[1],
+      mixer_name + "/" + command_interfaces[2],
     };
     return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
   }
@@ -43,6 +44,10 @@ public:
     };
     reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
 
+    param_listener = std::make_shared<ParamListener>(get_node());
+
+    param_listener->setUserCallback([this](const Params & params) { configure_pid(params); });
+
     sub_reference = get_node()->create_subscription<geometry_msgs::msg::Vector3>(
       "~/reference", 1, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) -> void
       { msg_reference.set(*msg); });
@@ -52,48 +57,73 @@ public:
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    mixer_name = get_node()->declare_parameter<std::string>("mixer");
+    const Params params = param_listener->get_params();
+    mixer_name = params.mixer;
+    command_interfaces = params.command_interfaces;
+    sensor_name = params.sensor_name;
 
-    if (mixer_name.empty())
+    assert(command_interfaces.size() == n);
+
+    if (configure_pid(params))
     {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(), "Parameter 'mixer' is empty. Please specify a mixer name.");
+      return controller_interface::CallbackReturn::SUCCESS;
+    }
+    else
+    {
       return controller_interface::CallbackReturn::ERROR;
     }
+  }
 
-    sensor_name = get_node()->declare_parameter<std::string>("sensor_name");
-
-    if (sensor_name.empty())
-    {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'sensor_name' is empty. Please specify a sensor name.");
-      return controller_interface::CallbackReturn::ERROR;
-    }
-
+  bool configure_pid(const Params & params)
+  {
     control_toolbox::AntiWindupStrategy antiwindup;
-    antiwindup.type = control_toolbox::AntiWindupStrategy::NONE;
+    antiwindup.set_type(params.antiwindup.type);
+    antiwindup.i_min = params.antiwindup.i_min;
+    antiwindup.i_max = params.antiwindup.i_max;
+    antiwindup.tracking_time_constant = params.antiwindup.tracking_time_constant;
 
-    for (size_t i = 0; i < cmd_order.size(); i++)
+    antiwindup.validate();
+
+    bool all_success = true;
+
+    for (size_t i = 0; i < command_interfaces.size(); i++)
     {
-      // gains
-      const double gp = get_node()->declare_parameter<double>("gains." + cmd_order[i] + ".p", 1);
-      const double gi = get_node()->declare_parameter<double>("gains." + cmd_order[i] + ".i", 0);
-      const double gd = get_node()->declare_parameter<double>("gains." + cmd_order[i] + ".d", 0);
+      const bool success = pid_controllers[i].set_gains(
+        // gains
+        params.gains.command_interfaces_map.at(command_interfaces[i]).p,
+        params.gains.command_interfaces_map.at(command_interfaces[i]).i,
+        params.gains.command_interfaces_map.at(command_interfaces[i]).d,
+        // output limits
+        std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),
+        // anti integral windup settings
+        antiwindup);
 
-      pid_controllers[i] = std::make_shared<control_toolbox::Pid>(
-        gp, gi, gd, std::numeric_limits<double>::infinity(),
-        -std::numeric_limits<double>::infinity(), antiwindup);
+      if (success)
+      {
+        const control_toolbox::Pid::Gains gains = pid_controllers[i].get_gains();
+        RCLCPP_INFO_STREAM(
+          get_node()->get_logger(), "PID for '"
+                                      << command_interfaces[i] << "': p: " << gains.p_gain_
+                                      << ", i: " << gains.i_gain_ << ", d: " << gains.d_gain_);
+      }
+      else
+      {
+        RCLCPP_ERROR_STREAM(
+          get_node()->get_logger(),
+          "Failed to set PID gains for '" << command_interfaces[i] << "'");
+      }
+
+      all_success &= success;
     }
 
-    return controller_interface::CallbackReturn::SUCCESS;
+    return all_success;
   }
 
   CallbackReturn on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    for (std::shared_ptr<control_toolbox::Pid> pid_controller : pid_controllers)
+    for (control_toolbox::Pid & pid_controller : pid_controllers)
     {
-      pid_controller->reset();
+      pid_controller.reset();
     }
 
     return controller_interface::CallbackReturn::SUCCESS;
@@ -118,14 +148,14 @@ public:
     const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
   {
     // roll, pitch, yaw
-    std::array<double, cmd_order.size()> cmds;
+    std::array<double, n> cmds;
     for (size_t i = 0; i < pid_controllers.size(); i++)
     {
       const double state = state_interfaces_[i].get_optional().value_or(nan);
-      cmds[i] = pid_controllers[i]->compute_command(reference_interfaces_[i] - state, period);
+      cmds[i] = pid_controllers[i].compute_command(reference_interfaces_[i] - state, period);
       RCLCPP_DEBUG_STREAM(
-        get_node()->get_logger(), std::fixed << std::setprecision(2) << cmd_order[i] << ": "
-                                             << reference_interfaces_[i] << " <> " << state
+        get_node()->get_logger(), std::fixed << std::setprecision(2) << command_interfaces[i]
+                                             << ": " << reference_interfaces_[i] << " <> " << state
                                              << " -> " << cmds[i] << " [rad/s]");
     }
 
@@ -142,15 +172,13 @@ public:
 private:
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
 
-  // the command interface order relates to the corresponding order of the state
-  // roll  - angular_velocity.x
-  // pitch - angular_velocity.y
-  // yaw   - angular_velocity.z
-  static constexpr std::array<std::string, 3> cmd_order = {"roll", "pitch", "yaw"};
-
   std::string mixer_name;
+  std::vector<std::string> command_interfaces;
   std::string sensor_name;
-  std::array<std::shared_ptr<control_toolbox::Pid>, cmd_order.size()> pid_controllers;
+  std::shared_ptr<ParamListener> param_listener = nullptr;
+
+  static constexpr int8_t n = 3;
+  std::array<control_toolbox::Pid, n> pid_controllers;
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_reference;

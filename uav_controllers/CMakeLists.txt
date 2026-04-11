@@ -51,10 +51,16 @@ add_library(controller_angular_velocity_pid SHARED
   src/controller_angular_velocity_pid.cpp
 )
 target_link_libraries(controller_angular_velocity_pid PUBLIC
+  controller_angular_velocity_pid_parameters
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   control_toolbox::control_toolbox
+)
+
+generate_parameter_library(
+  controller_angular_velocity_pid_parameters
+  parameters/controller_angular_velocity_pid_parameters.yaml
 )
 
 add_library(controller_orientation_pid SHARED
@@ -115,6 +121,7 @@ install(TARGETS
   control_allocation_wrench
   control_allocation_simple
   controller_angular_velocity_pid
+  controller_angular_velocity_pid_parameters
   controller_orientation_pid
   controller_attitude_pid
   mode_attitude
