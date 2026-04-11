@@ -6,6 +6,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <string>
+#include <uav_controllers/fusion_madgwick_parameters.hpp>
 #include <vector>
 
 namespace uav::controllers
@@ -48,7 +49,11 @@ public:
   {
     model.initString(get_robot_description());
 
-    use_magnetometer = get_node()->declare_parameter<bool>("use_magnetometer", false);
+    param_listener = std::make_shared<ParamListener>(get_node());
+    param_listener->setUserCallback([this](const Params & params)
+                                    { filter.setAlgorithmGain(params.gain); });
+
+    use_magnetometer = param_listener->get_params().use_magnetometer;
 
     exported_state_interface_names_ = {
       // gyroscope
@@ -82,15 +87,9 @@ public:
   controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    sensor_name = get_node()->declare_parameter<std::string>("sensor_name");
+    const Params params = param_listener->get_params();
 
-    if (sensor_name.empty())
-    {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'sensor_name' is empty. Please specify a sensor name.");
-      return controller_interface::CallbackReturn::ERROR;
-    }
+    sensor_name = params.sensor_name;
 
     // get rotation between base link and IMU link
     if (const urdf::LinkConstSharedPtr imu_link = model.getLink(sensor_name))
@@ -124,7 +123,7 @@ public:
     }
 
     filter.setWorldFrame(WorldFrame::WorldFrame::NWU);
-    filter.setAlgorithmGain(get_node()->declare_parameter<double>("gain", 0.1));
+    filter.setAlgorithmGain(params.gain);
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -270,6 +269,7 @@ private:
 
   std::string sensor_name;
   bool use_magnetometer = false;
+  std::shared_ptr<ParamListener> param_listener;
   bool initialised = false;
 
   urdf::Model model;
