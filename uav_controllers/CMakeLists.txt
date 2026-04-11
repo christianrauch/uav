@@ -112,7 +112,13 @@ add_library(mode_attitude SHARED
   src/mode_attitude.cpp
 )
 target_link_libraries(mode_attitude PUBLIC
+  mode_attitude_parameters
   controller_interface::controller_interface
+)
+
+generate_parameter_library(
+  mode_attitude_parameters
+  parameters/mode_attitude_parameters.yaml
 )
 
 add_library(magnetometer_broadcaster SHARED
@@ -164,6 +170,7 @@ install(TARGETS
   controller_attitude_pid
   controller_attitude_pid_parameters
   mode_attitude
+  mode_attitude_parameters
   magnetometer_broadcaster
   magnetometer_broadcaster_parameters
   fusion_madgwick
