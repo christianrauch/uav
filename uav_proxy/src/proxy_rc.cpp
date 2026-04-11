@@ -3,7 +3,7 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 
-namespace uav_hardware
+namespace uav::proxy
 {
 
 class ProxyRC : public hardware_interface::SensorInterface
@@ -88,6 +88,6 @@ private:
   realtime_tools::RealtimeThreadSafeBox<mavros_msgs::msg::OverrideRCIn> msg_rc;
 };
 
-}  // namespace uav_hardware
+}  // namespace uav::proxy
 
-PLUGINLIB_EXPORT_CLASS(uav_hardware::ProxyRC, hardware_interface::SensorInterface)
+PLUGINLIB_EXPORT_CLASS(uav::proxy::ProxyRC, hardware_interface::SensorInterface)

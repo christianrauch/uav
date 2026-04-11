@@ -1,6 +1,6 @@
 <library path="proxy_imu">
-  <class name="uav_hardware/ProxyIMU"
-         type="uav_hardware::ProxyIMU"
+  <class name="uav/proxy/IMU"
+         type="uav::proxy::ProxyIMU"
          base_class_type="hardware_interface::SensorInterface">
     <description>
       proxy interface to an IMU
@@ -9,8 +9,8 @@
 </library>
 
 <library path="proxy_actuator">
-  <class name="uav_hardware/ProxyActuator"
-         type="uav_hardware::ProxyActuator"
+  <class name="uav/proxy/Actuator"
+         type="uav::proxy::ProxyActuator"
          base_class_type="hardware_interface::ActuatorInterface">
     <description>
       proxy interface to mavros_msgs/msg/ActuatorControl
@@ -19,8 +19,8 @@
 </library>
 
 <library path="proxy_rc">
-  <class name="uav_hardware/ProxyRC"
-         type="uav_hardware::ProxyRC"
+  <class name="uav/proxy/RC"
+         type="uav::proxy::ProxyRC"
          base_class_type="hardware_interface::SensorInterface">
     <description>
       proxy interface to RC channels via mavros_msgs/msg/OverrideRCIn
