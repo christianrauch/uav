@@ -95,21 +95,14 @@ angular_velocity:
   ros__parameters:
     mixer: control_allocation
     sensor_name: fusion
-    # https://en.wikipedia.org/wiki/Ziegler–Nichols_method
-    # Kp = 0.2 * Ku
-    # Ki = 0.4 * Ku / Tu
-    # Kd = 6/90 * Ku * Tu
-
-    # Ku = 0.8
-    # Tu = 0.012 = 1/83.33Hz = 0.012s
     gains:
-      roll.p: 0.16
-      pitch.p: 0.16
-      roll.i: 2.6
-      pitch.i: 2.6
-      roll.d: 0.00064
-      pitch.d: 0.00064
-      yaw.p: 3.0
+      roll.p: 0.
+      pitch.p: 0.
+      roll.i: 0.
+      pitch.i: 0.
+      roll.d: 0.
+      pitch.d: 0.
+      yaw.p: 0.
 
 angular_position:
   ros__parameters:
@@ -118,20 +111,20 @@ angular_position:
     sensor_name: fusion
     gains:
       tau: 0.2
-      roll.p: 0.4
-      pitch.p: 0.4
-      yaw.p: 0.4
+      roll.p: 0.
+      pitch.p: 0.
+      yaw.p: 0.
 
 attitude:
   ros__parameters:
     velocity_controller_name: angular_velocity
     sensor_name: fusion
     gains:
-      roll.p: 2.
-      roll.d: 0.01
-      pitch.p: 2.
-      pitch.d: 0.01
-      yaw_rate.p: 0.4
+      roll.p: 0.
+      roll.d: 0.
+      pitch.p: 0.
+      pitch.d: 0.
+      yaw_rate.p: 0.
 
 attitude_mode:
   ros__parameters:
