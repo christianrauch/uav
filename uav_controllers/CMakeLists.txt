@@ -79,11 +79,17 @@ add_library(controller_orientation_pid SHARED
   src/controller_orientation_pid.cpp
 )
 target_link_libraries(controller_orientation_pid PUBLIC
+  controller_orientation_pid_parameters
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   control_toolbox::control_toolbox
   Eigen3::Eigen
+)
+
+generate_parameter_library(
+  controller_orientation_pid_parameters
+  parameters/controller_orientation_pid_parameters.yaml
 )
 
 add_library(controller_attitude_pid SHARED
@@ -154,6 +160,7 @@ install(TARGETS
   controller_angular_velocity_pid
   controller_angular_velocity_pid_parameters
   controller_orientation_pid
+  controller_orientation_pid_parameters
   controller_attitude_pid
   controller_attitude_pid_parameters
   mode_attitude
