@@ -125,11 +125,17 @@ add_library(fusion_madgwick SHARED
   src/fusion_madgwick.cpp
 )
 target_link_libraries(fusion_madgwick PUBLIC
+  fusion_madgwick_parameters
   controller_interface::controller_interface
   hardware_interface::hardware_interface
   Eigen3::Eigen
   urdfdom_headers::urdfdom_headers
   imu_filter_madgwick::imu_filter_madgwick
+)
+
+generate_parameter_library(
+  fusion_madgwick_parameters
+  parameters/fusion_madgwick_parameters.yaml
 )
 
 pluginlib_export_plugin_description_file(controller_interface uav_controllers_plugin.xml)
@@ -147,6 +153,7 @@ install(TARGETS
   magnetometer_broadcaster
   magnetometer_broadcaster_parameters
   fusion_madgwick
+  fusion_madgwick_parameters
   EXPORT ${PROJECT_NAME}Targets
 )
 
