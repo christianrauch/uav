@@ -1,0 +1,93 @@
+uav::controllers::angular_position:
+  velocity_controller_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of the velocity controller that supports the 'angular_velocity'
+      command interfaces."
+
+  sensor_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the 'angular_velocity' state interfaces."
+
+  antiwindup:
+    type:
+      type: string
+      default_value: "none"
+      validation:
+        one_of<>: [["none", "back_calculation", "conditional_integration"]]
+    i_min:
+      type: double
+      default_value: -.inf
+      validation:
+        lt_eq<>: 0
+      description: "lower bound for clamping the integral term"
+    i_max:
+      type: double
+      default_value: .inf
+      validation:
+        gt_eq<>: 0
+      description: "upper bound for clamping the integral term"
+    tracking_time_constant:
+      type: double
+      default_value: .nan
+      description:
+        "Time constant for 'back_calculation' antiwindup strategy."
+
+  gains:
+    tau:
+      type: double
+      default_value: 2
+      validation:
+        gt_eq<>: 0
+    roll:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0
+      i:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+      d:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+    pitch:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0
+      i:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+      d:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+    yaw:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0
+      i:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+      d:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
