@@ -5,6 +5,7 @@
 #include <numbers>
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
+#include <uav_controllers/control_allocation_wrench_parameters.hpp>
 
 namespace uav::control_allocation
 {
@@ -40,6 +41,8 @@ public:
     sub_control = get_node()->create_subscription<geometry_msgs::msg::Wrench>(
       "~/wrench", 1,
       [this](const geometry_msgs::msg::Wrench::SharedPtr msg) -> void { msg_control.set(*msg); });
+
+    param_listener = std::make_shared<ParamListener>(get_node());
 
     // parse the robot description
     model.initString(get_robot_description());
@@ -113,13 +116,15 @@ public:
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
+    const Params params = param_listener->get_params();
+
     // thrust/force and torque coefficients [1] (unitless))
-    const double cT = get_node()->declare_parameter<double>("cT", 0.05);  // thrust
-    const double cQ = get_node()->declare_parameter<double>("cQ", 0.05);  // torque
+    const double cT = params.cT;  // thrust
+    const double cQ = params.cQ;  // torque
 
     // fluid density ρ [kg/m^3]
     // default: 1.225 kg/m^3 (International Standard Atmosphere Layer 0)
-    const double p = get_node()->declare_parameter<double>("p", 1.225);
+    const double p = params.p;
 
     const Matrix6Xd G = compute_G(rotor_posrot, cT, cQ, p);
 
@@ -181,6 +186,7 @@ private:
   MatrixX6d Ginv;
   rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr sub_control;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Wrench> msg_control;
+  std::shared_ptr<ParamListener> param_listener;
 
   static Matrix6Xd compute_G(const Matrix7Xd & rotor_pose, double cT, double cQ, double p)
   {
