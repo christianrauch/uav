@@ -29,15 +29,6 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
-    // set reference interface
-    exported_reference_interface_names_ = {
-      "thrust",
-      "roll",
-      "pitch",
-      "yaw",
-    };
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0.0);
-
     // manual control subscriber for reference interface
     sub_control = get_node()->create_subscription<geometry_msgs::msg::Twist>(
       "~/twist", 1,
@@ -92,6 +83,12 @@ public:
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
     min_speed = param_listener->get_params().min_output;
+
+    // set reference interface
+    exported_reference_interface_names_.assign(
+      reference_interface_names.begin(), reference_interface_names.end());
+    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -176,6 +173,13 @@ private:
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Twist> msg_control;
   std::shared_ptr<ParamListener> param_listener;
   double min_speed = 0;
+
+  static constexpr std::array<std::string, 4> reference_interface_names = {
+    "thrust",
+    "roll",
+    "pitch",
+    "yaw",
+  };
 
   static Eigen::MatrixX4d compute_M(const Eigen::MatrixX3d & motors)
   {
