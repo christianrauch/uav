@@ -26,6 +26,7 @@
 #include <realtime_tools/realtime_publisher.hpp>
 #include <semantic_components/magnetic_field_sensor.hpp>
 #include <sensor_msgs/msg/magnetic_field.hpp>
+#include <uav_controllers/magnetometer_broadcaster_parameters.hpp>
 
 namespace magnetometer_broadcaster
 {
@@ -35,7 +36,7 @@ class MagnetometerBroadcaster : public controller_interface::ControllerInterface
 public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override
   {
-    return {controller_interface::interface_configuration_type::NONE};
+    return {};
   }
 
   controller_interface::InterfaceConfiguration state_interface_configuration() const override
@@ -46,28 +47,38 @@ public:
     };
   }
 
-  controller_interface::CallbackReturn on_init() override { return CallbackReturn::SUCCESS; }
+  controller_interface::CallbackReturn on_init() override
+  {
+    try
+    {
+      param_listener_ = std::make_shared<ParamListener>(get_node());
+    }
+    catch (const std::exception & e)
+    {
+      RCLCPP_ERROR_STREAM(
+        get_node()->get_logger(), "Exception thrown during init stage with message: " << e.what());
+      return CallbackReturn::ERROR;
+    }
+
+    return CallbackReturn::SUCCESS;
+  }
 
   controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    const std::string sensor_name = get_node()->declare_parameter<std::string>("sensor_name");
-    if (sensor_name.empty())
+    try
     {
-      RCLCPP_FATAL_STREAM(
+      params_ = param_listener_->get_params();
+    }
+    catch (const std::exception & e)
+    {
+      RCLCPP_ERROR_STREAM(
         get_node()->get_logger(),
-        "Parameter 'sensor_name' is empty. Please specify a sensor name for the magnetometer.");
-      return controller_interface::CallbackReturn::ERROR;
+        "Exception thrown during config stage with message: " << e.what());
+      return CallbackReturn::ERROR;
     }
 
-    const std::string frame_id =
-      get_node()->declare_parameter<std::string>("frame_id", std::string{});
-
-    const std::vector<double> static_covariance =
-      get_node()->declare_parameter<std::vector<double>>(
-        "static_covariance", {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
-
-    magnetometer_ = std::make_unique<semantic_components::MagneticFieldSensor>(sensor_name);
+    magnetometer_ = std::make_unique<semantic_components::MagneticFieldSensor>(params_.sensor_name);
     try
     {
       sensor_state_publisher_ = get_node()->create_publisher<sensor_msgs::msg::MagneticField>(
@@ -82,9 +93,9 @@ public:
       return CallbackReturn::ERROR;
     }
 
-    state_message_.header.frame_id = frame_id;
+    state_message_.header.frame_id = params_.frame_id;
     std::copy(
-      static_covariance.begin(), static_covariance.end(),
+      params_.static_covariance.begin(), params_.static_covariance.end(),
       state_message_.magnetic_field_covariance.begin());
 
     return CallbackReturn::SUCCESS;
@@ -119,6 +130,9 @@ public:
   }
 
 protected:
+  std::shared_ptr<ParamListener> param_listener_;
+  Params params_;
+
   std::unique_ptr<semantic_components::MagneticFieldSensor> magnetometer_;
 
   using StatePublisher = realtime_tools::RealtimePublisher<sensor_msgs::msg::MagneticField>;
