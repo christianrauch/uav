@@ -4,6 +4,7 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
+#include <uav_controllers/controller_orientation_pid_parameters.hpp>
 
 namespace uav::controllers
 {
@@ -50,57 +51,86 @@ public:
       "~/reference", 1, [this](const geometry_msgs::msg::Quaternion::SharedPtr msg) -> void
       { msg_reference.set(*msg); });
 
+    param_listener = std::make_shared<ParamListener>(get_node());
+
+    param_listener->setUserCallback([this](const Params & params) { configure_pid(params); });
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    velocity_controller_name =
-      get_node()->declare_parameter<std::string>("velocity_controller_name");
+    const Params params = param_listener->get_params();
+    velocity_controller_name = params.velocity_controller_name;
+    sensor_name = params.sensor_name;
 
-    if (velocity_controller_name.empty())
+    if (configure_pid(params))
     {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'velocity_controller_name' is empty. Please specify a velocity controller.");
+      return controller_interface::CallbackReturn::SUCCESS;
+    }
+    else
+    {
       return controller_interface::CallbackReturn::ERROR;
     }
+  }
 
-    sensor_name = get_node()->declare_parameter<std::string>("sensor_name");
-
-    if (sensor_name.empty())
-    {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'sensor_name' is empty. Please specify a sensor name.");
-      return controller_interface::CallbackReturn::ERROR;
-    }
-
-    tau = get_node()->declare_parameter<double>("gains.tau", 2);
+  bool configure_pid(const Params & params)
+  {
+    tau = params.gains.tau;
 
     control_toolbox::AntiWindupStrategy antiwindup;
-    antiwindup.type = control_toolbox::AntiWindupStrategy::NONE;
+    antiwindup.set_type(params.antiwindup.type);
+    antiwindup.i_min = params.antiwindup.i_min;
+    antiwindup.i_max = params.antiwindup.i_max;
+    antiwindup.tracking_time_constant = params.antiwindup.tracking_time_constant;
+
+    antiwindup.validate();
+
+    const std::unordered_map<std::string, std::array<double, 3>> gains = {
+      {"roll", {params.gains.roll.p, params.gains.roll.i, params.gains.roll.d}},
+      {"pitch", {params.gains.pitch.p, params.gains.pitch.i, params.gains.pitch.d}},
+      {"yaw", {params.gains.yaw.p, params.gains.yaw.i, params.gains.yaw.d}},
+    };
+
+    bool all_success = true;
 
     for (size_t i = 0; i < cmd_order.size(); i++)
     {
-      // gains
-      const double gp = get_node()->declare_parameter<double>("gains." + cmd_order[i] + ".p", 1);
-      const double gi = get_node()->declare_parameter<double>("gains." + cmd_order[i] + ".i", 0);
-      const double gd = get_node()->declare_parameter<double>("gains." + cmd_order[i] + ".d", 0);
+      const std::array<double, 3> g = gains.at(cmd_order[i]);
 
-      pid_controllers[i] = std::make_shared<control_toolbox::Pid>(
-        gp, gi, gd, std::numeric_limits<double>::infinity(),
-        -std::numeric_limits<double>::infinity(), antiwindup);
+      const bool success = pid_controllers[i].set_gains(
+        // gains
+        g[0], g[1], g[2],
+        // output limits
+        std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),
+        // anti integral windup settings
+        antiwindup);
+
+      if (success)
+      {
+        const control_toolbox::Pid::Gains gains = pid_controllers[i].get_gains();
+        RCLCPP_INFO_STREAM(
+          get_node()->get_logger(), "PID for '" << cmd_order[i] << "': p: " << gains.p_gain_
+                                                << ", i: " << gains.i_gain_
+                                                << ", d: " << gains.d_gain_);
+      }
+      else
+      {
+        RCLCPP_ERROR_STREAM(
+          get_node()->get_logger(), "Failed to set PID gains for '" << cmd_order[i] << "'");
+      }
+
+      all_success &= success;
     }
 
-    return controller_interface::CallbackReturn::SUCCESS;
+    return all_success;
   }
 
   CallbackReturn on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    for (std::shared_ptr<control_toolbox::Pid> pid_controller : pid_controllers)
+    for (control_toolbox::Pid & pid_controller : pid_controllers)
     {
-      pid_controller->reset();
+      pid_controller.reset();
     }
 
     return controller_interface::CallbackReturn::SUCCESS;
@@ -176,7 +206,7 @@ public:
 
     for (Eigen::Index i = 0; i < o.size(); i++)
     {
-      const double cmd = pid_controllers[i]->compute_command(o[i], period);
+      const double cmd = pid_controllers[i].compute_command(o[i], period);
       RCLCPP_DEBUG_STREAM(
         get_node()->get_logger(), std::fixed << std::setprecision(2) << cmd_order[i] << ": " << o[i]
                                              << " -> " << cmd << " [rad]");
@@ -194,7 +224,9 @@ private:
   std::string velocity_controller_name;
   std::string sensor_name;
   double tau;
-  std::array<std::shared_ptr<control_toolbox::Pid>, cmd_order.size()> pid_controllers;
+  std::shared_ptr<ParamListener> param_listener;
+
+  std::array<control_toolbox::Pid, cmd_order.size()> pid_controllers;
 
   rclcpp::Subscription<geometry_msgs::msg::Quaternion>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Quaternion> msg_reference;
