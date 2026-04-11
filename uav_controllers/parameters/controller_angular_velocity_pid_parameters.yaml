@@ -1,0 +1,68 @@
+uav::controllers::angular_velocity:
+  mixer:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the command interfaces 'roll', 'pitch',
+      and 'yaw'."
+
+  command_interfaces:
+    type: string_array
+    read_only: true
+    default_value: ["roll", "pitch", "yaw"]
+    validation:
+      fixed_size<>: 3
+    description:
+      "Roll, pitch, and yaw command interface of mixer responding to the
+      'angular_velocity' state and reference interfaces."
+
+  sensor_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the 'angular_velocity' state interfaces."
+
+  antiwindup:
+    type:
+      type: string
+      default_value: "none"
+      validation:
+        one_of<>: [["none", "back_calculation", "conditional_integration"]]
+    i_min:
+      type: double
+      default_value: -.inf
+      validation:
+        lt_eq<>: 0
+      description: "lower bound for clamping the integral term"
+    i_max:
+      type: double
+      default_value: .inf
+      validation:
+        gt_eq<>: 0
+      description: "upper bound for clamping the integral term"
+    tracking_time_constant:
+      type: double
+      default_value: .nan
+      description:
+        "Time constant for 'back_calculation' antiwindup strategy."
+
+  gains:
+    __map_command_interfaces:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0
+      i:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+      d:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
