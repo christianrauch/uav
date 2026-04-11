@@ -30,13 +30,6 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
-    // set reference interface
-    exported_reference_interface_names_ = {
-      "force.x",  "force.y",  "force.z",   // force
-      "torque.x", "torque.y", "torque.z",  // torque
-    };
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0.0);
-
     // manual control subscriber for reference interface
     sub_control = get_node()->create_subscription<geometry_msgs::msg::Wrench>(
       "~/wrench", 1,
@@ -118,6 +111,11 @@ public:
   {
     const Params params = param_listener->get_params();
 
+    // set reference interface
+    exported_reference_interface_names_.assign(
+      reference_interface_names.begin(), reference_interface_names.end());
+    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
+
     // thrust/force and torque coefficients [1] (unitless))
     const double cT = params.cT;  // thrust
     const double cQ = params.cQ;  // torque
@@ -187,6 +185,11 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Wrench>::SharedPtr sub_control;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Wrench> msg_control;
   std::shared_ptr<ParamListener> param_listener;
+
+  static constexpr std::array<std::string_view, 6> reference_interface_names = {
+    "force.x",  "force.y",  "force.z",   // force
+    "torque.x", "torque.y", "torque.z",  // torque
+  };
 
   static Matrix6Xd compute_G(const Matrix7Xd & rotor_pose, double cT, double cQ, double p)
   {
