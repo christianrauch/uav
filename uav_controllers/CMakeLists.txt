@@ -27,6 +27,7 @@ add_library(control_allocation_wrench SHARED
   src/control_allocation_wrench.cpp
 )
 target_link_libraries(control_allocation_wrench PUBLIC
+  control_allocation_wrench_parameters
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
@@ -34,6 +35,11 @@ target_link_libraries(control_allocation_wrench PUBLIC
   urdfdom_headers::urdfdom_headers
 )
 target_compile_definitions(control_allocation_wrench PRIVATE EIGEN_INITIALIZE_MATRICES_BY_NAN)
+
+generate_parameter_library(
+  control_allocation_wrench_parameters
+  parameters/control_allocation_wrench_parameters.yaml
+)
 
 add_library(control_allocation_simple SHARED
   src/control_allocation_simple.cpp
@@ -125,6 +131,7 @@ pluginlib_export_plugin_description_file(controller_interface uav_controllers_pl
 
 install(TARGETS
   control_allocation_wrench
+  control_allocation_wrench_parameters
   control_allocation_simple
   control_allocation_simple_parameters
   controller_angular_velocity_pid
