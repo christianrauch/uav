@@ -1,5 +1,6 @@
 #include <controller_interface/controller_interface.hpp>
 #include <pluginlib/class_list_macros.hpp>
+#include <uav_controllers/mode_attitude_parameters.hpp>
 
 namespace uav::flight_mode
 {
@@ -36,30 +37,20 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
+    param_listener = std::make_shared<ParamListener>(get_node());
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    attitude_controller_name =
-      get_node()->declare_parameter<std::string>("attitude_controller_name");
-
-    mixer_name = get_node()->declare_parameter<std::string>("mixer");
-
-    rpyt_channels = get_node()->declare_parameter<std::vector<int64_t>>("rpyt_channels");
+    const Params params = param_listener->get_params();
 
     // maximum roll and pitch in degree
-    max_tilt = get_node()->declare_parameter<double>("max_tilt", 60);
-
-    if (rpyt_channels.size() != 4)
-    {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'rpyt_channels' must contain exactly 4 channel IDs for roll, pitch, yaw, and "
-        "throttle.");
-      return controller_interface::CallbackReturn::ERROR;
-    }
+    attitude_controller_name = params.attitude_controller_name;
+    mixer_name = params.mixer;
+    rpyt_channels = params.rpyt_channels;
+    max_tilt = params.max_tilt;
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -100,6 +91,7 @@ private:
   std::string mixer_name;
   std::vector<int64_t> rpyt_channels;
   double max_tilt;
+  std::shared_ptr<ParamListener> param_listener;
   static constexpr double rc_min = 0;
   static constexpr double rc_max = 1;
 };

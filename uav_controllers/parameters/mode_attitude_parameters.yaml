@@ -1,0 +1,35 @@
+uav::flight_mode:
+  attitude_controller_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the command interfaces 'roll', 'pitch',
+      and 'yaw_rate'."
+
+  mixer:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the 'thrust' command interface."
+
+  rpyt_channels:
+    type: int_array
+    read_only: true
+    validation:
+      fixed_size<>: 4
+    description:
+      "RC channel IDs for roll, pitch, yaw, and throttle, in that order. These
+      are used to identify the state interfaces in the namespace 'rc/channel/'"
+
+  max_tilt:
+    type: double
+    default_value: 60
+    read_only: true
+    validation:
+      bounds<>: [0, 90]
+    description:
+      "Maximum tilt angle in degrees."
