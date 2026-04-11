@@ -38,15 +38,6 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
-    // set reference interface
-    exported_reference_interface_names_ = {
-      "orientation.x",
-      "orientation.y",
-      "orientation.z",
-      "orientation.w",
-    };
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
-
     sub_reference = get_node()->create_subscription<geometry_msgs::msg::Quaternion>(
       "~/reference", 1, [this](const geometry_msgs::msg::Quaternion::SharedPtr msg) -> void
       { msg_reference.set(*msg); });
@@ -61,6 +52,12 @@ public:
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
     const Params params = param_listener->get_params();
+
+    // set reference interface
+    exported_reference_interface_names_.assign(
+      reference_interface_names.begin(), reference_interface_names.end());
+    reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
+
     velocity_controller_name = params.velocity_controller_name;
     sensor_name = params.sensor_name;
 
@@ -220,6 +217,13 @@ private:
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
 
   static constexpr std::array<std::string, 3> cmd_order = {"roll", "pitch", "yaw"};
+
+  static constexpr std::array<std::string_view, 4> reference_interface_names = {
+    "orientation.x",
+    "orientation.y",
+    "orientation.z",
+    "orientation.w",
+  };
 
   std::string velocity_controller_name;
   std::string sensor_name;
