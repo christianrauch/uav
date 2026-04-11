@@ -4,6 +4,8 @@ project(uav_proxy)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
   add_compile_options(-Werror)
+  add_link_options("-Wl,-z,defs")
+  add_link_options("-Wl,--no-allow-shlib-undefined")
 endif()
 
 # find dependencies
