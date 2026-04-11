@@ -1,0 +1,22 @@
+uav::control_allocation:
+  cT:
+    type: double
+    default_value: 0.05
+    read_only: true
+    validation:
+      gt_eq<>: 0
+    description: "Thrust coefficient [1] (unitless)"
+  cQ:
+    type: double
+    default_value: 0.05
+    read_only: true
+    validation:
+      gt_eq<>: 0
+    description: "Torque coefficient [1] (unitless)"
+  p:
+    type: double
+    default_value: 1.225
+    read_only: true
+    validation:
+      gt_eq<>: 0
+    description: "Fluid density ρ [kg/m^3]"
