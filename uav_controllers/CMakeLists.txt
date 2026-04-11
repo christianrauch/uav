@@ -90,10 +90,16 @@ add_library(controller_attitude_pid SHARED
   src/controller_attitude_pid.cpp
 )
 target_link_libraries(controller_attitude_pid PUBLIC
+  controller_attitude_pid_parameters
   controller_interface::controller_interface
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   Eigen3::Eigen
+)
+
+generate_parameter_library(
+  controller_attitude_pid_parameters
+  parameters/controller_attitude_pid_parameters.yaml
 )
 
 add_library(mode_attitude SHARED
@@ -149,6 +155,7 @@ install(TARGETS
   controller_angular_velocity_pid_parameters
   controller_orientation_pid
   controller_attitude_pid
+  controller_attitude_pid_parameters
   mode_attitude
   magnetometer_broadcaster
   magnetometer_broadcaster_parameters

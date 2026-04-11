@@ -1,0 +1,44 @@
+uav::controllers::attitude:
+  velocity_controller_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of the velocity controller that supports the 'angular_velocity'
+      command interfaces."
+
+  sensor_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the 'angular_velocity' state interfaces."
+
+  gains:
+    roll:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0
+      d:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+    pitch:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0
+      d:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
+    yaw_rate:
+      p:
+        type: double
+        validation:
+          gt_eq<>: 0

@@ -3,6 +3,7 @@
 #include <geometry_msgs/msg/vector3.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
+#include <uav_controllers/controller_attitude_pid_parameters.hpp>
 
 namespace uav::controllers
 {
@@ -49,6 +50,20 @@ public:
     // levelled and no yaw rotation by default
     reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
 
+    param_listener = std::make_shared<ParamListener>(get_node());
+
+    param_listener->setUserCallback(
+      [this](const Params & params)
+      {
+        param_mutex.lock();
+        gain_roll_p = params.gains.roll.p;
+        gain_roll_d = params.gains.roll.d;
+        gain_pitch_p = params.gains.pitch.p;
+        gain_pitch_d = params.gains.pitch.d;
+        gain_yaw_p = params.gains.yaw_rate.p;
+        param_mutex.unlock();
+      });
+
     sub_reference = get_node()->create_subscription<geometry_msgs::msg::Vector3>(
       "~/reference", 1, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) -> void
       { msg_reference.set(*msg); });
@@ -58,32 +73,18 @@ public:
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
-    velocity_controller_name =
-      get_node()->declare_parameter<std::string>("velocity_controller_name");
+    const Params params = param_listener->get_params();
 
-    if (velocity_controller_name.empty())
-    {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'velocity_controller_name' is empty. Please specify a mixer name.");
-      return controller_interface::CallbackReturn::ERROR;
-    }
+    velocity_controller_name = params.velocity_controller_name;
+    sensor_name = params.sensor_name;
 
-    sensor_name = get_node()->declare_parameter<std::string>("sensor_name");
-
-    if (sensor_name.empty())
-    {
-      RCLCPP_FATAL_STREAM(
-        get_node()->get_logger(),
-        "Parameter 'sensor_name' is empty. Please specify a sensor name.");
-      return controller_interface::CallbackReturn::ERROR;
-    }
-
-    gain_roll_p = get_node()->declare_parameter<double>("gains.roll.p", 1);
-    gain_roll_d = get_node()->declare_parameter<double>("gains.roll.d", 0);
-    gain_pitch_p = get_node()->declare_parameter<double>("gains.pitch.p", 1);
-    gain_pitch_d = get_node()->declare_parameter<double>("gains.pitch.d", 0);
-    gain_yaw_p = get_node()->declare_parameter<double>("gains.yaw_rate.p", 1);
+    param_mutex.lock();
+    gain_roll_p = params.gains.roll.p;
+    gain_roll_d = params.gains.roll.d;
+    gain_pitch_p = params.gains.pitch.p;
+    gain_pitch_d = params.gains.pitch.d;
+    gain_yaw_p = params.gains.yaw_rate.p;
+    param_mutex.unlock();
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -136,11 +137,13 @@ public:
 
     bool status_ok = true;
 
+    param_mutex.lock();
     // attitude control for roll and pitch
     status_ok &= command_interfaces_[0].set_value(gain_roll_p * roll_err + gain_roll_d * wx);
     status_ok &= command_interfaces_[1].set_value(gain_pitch_p * pitch_err + gain_pitch_d * wy);
     // yaw rate control
     status_ok &= command_interfaces_[2].set_value(gain_yaw_p * (reference_interfaces_[2] - wz));
+    param_mutex.unlock();
 
     RCLCPP_DEBUG_STREAM(
       get_node()->get_logger(),
@@ -167,6 +170,8 @@ private:
 
   std::string velocity_controller_name;
   std::string sensor_name;
+  std::shared_ptr<ParamListener> param_listener;
+  std::mutex param_mutex;
 
   double gain_roll_p = 0;
   double gain_roll_d = 0;
