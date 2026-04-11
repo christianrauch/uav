@@ -80,6 +80,16 @@
   </class>
 </library>
 
+<library path="command_interfaces_broadcaster">
+  <class name="command_interfaces_broadcaster/CommandInterfacesBroadcaster"
+         type="command_interfaces_broadcaster::CommandInterfacesBroadcaster"
+         base_class_type="controller_interface::ChainableControllerInterface">
+  <description>
+      This controller publishes exported reference interfaces as control_msgs/msg/Keys and control_msgs/msg/Float64Values messages.
+  </description>
+  </class>
+</library>
+
 <library path="fusion_madgwick">
   <class
     name="uav/fusion/FusionMadgwick"

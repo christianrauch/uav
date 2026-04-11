@@ -143,6 +143,23 @@ generate_parameter_library(magnetometer_broadcaster_parameters
   parameters/magnetometer_broadcaster_parameters.yaml
 )
 
+add_library(command_interfaces_broadcaster SHARED
+  src/command_interfaces_broadcaster.cpp
+)
+target_link_libraries(command_interfaces_broadcaster PUBLIC
+  command_interfaces_broadcaster_parameters
+  controller_interface::controller_interface
+  hardware_interface::hardware_interface
+  pluginlib::pluginlib
+  realtime_tools::realtime_tools
+  ${control_msgs_TARGETS}
+)
+
+generate_parameter_library(
+  command_interfaces_broadcaster_parameters
+  parameters/command_interfaces_broadcaster_parameters.yaml
+)
+
 add_library(fusion_madgwick SHARED
   src/fusion_madgwick.cpp
 )
@@ -177,6 +194,8 @@ install(TARGETS
   mode_attitude_parameters
   magnetometer_broadcaster
   magnetometer_broadcaster_parameters
+  command_interfaces_broadcaster
+  command_interfaces_broadcaster_parameters
   fusion_madgwick
   fusion_madgwick_parameters
   EXPORT ${PROJECT_NAME}Targets
