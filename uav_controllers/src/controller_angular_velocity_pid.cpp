@@ -36,14 +36,6 @@ public:
 
   controller_interface::CallbackReturn on_init() override
   {
-    // set reference interface
-    exported_reference_interface_names_ = {
-      "angular_velocity.x",
-      "angular_velocity.y",
-      "angular_velocity.z",
-    };
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
-
     param_listener = std::make_shared<ParamListener>(get_node());
 
     param_listener->setUserCallback([this](const Params & params) { configure_pid(params); });
@@ -61,6 +53,11 @@ public:
     mixer_name = params.mixer;
     command_interfaces = params.command_interfaces;
     sensor_name = params.sensor_name;
+
+    // set reference interface
+    exported_reference_interface_names_.assign(
+      reference_interface_names.begin(), reference_interface_names.end());
+    reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
 
     assert(command_interfaces.size() == n);
 
@@ -179,6 +176,12 @@ private:
 
   static constexpr int8_t n = 3;
   std::array<control_toolbox::Pid, n> pid_controllers;
+
+  static constexpr std::array<std::string_view, 3> reference_interface_names = {
+    "angular_velocity.x",
+    "angular_velocity.y",
+    "angular_velocity.z",
+  };
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_reference;
