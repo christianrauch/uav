@@ -81,7 +81,7 @@ fusion_sensor_broadcaster:
 rotor_state_broadcaster:
   ros__parameters:
     joints: [rotor/1, rotor/2, rotor/3, rotor/4]
-    interfaces: ["velocity"]
+    interfaces: ["position", "velocity"]
 
 rc_broadcaster:
   ros__parameters:
