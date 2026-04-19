@@ -64,6 +64,7 @@ public:
     }
 
     rotor_cmds.resize(nrotors);
+    rotor_position.assign(nrotors, 0);
 
     if (!info_.hardware_parameters.contains("bus"))
     {
@@ -163,12 +164,21 @@ public:
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override
   {
     std::vector<hardware_interface::StateInterface> state_interfaces;
+
+    for (size_t i = 0; i < nrotors; ++i)
+    {
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+        hardware_interface::HW_IF_POSITION, &rotor_position[i]));
+    }
+
     for (size_t i = 0; i < nrotors; ++i)
     {
       state_interfaces.emplace_back(hardware_interface::StateInterface(
         std::string{actuator_prefix} + "/" + std::to_string(i + 1),
         hardware_interface::HW_IF_VELOCITY, &rotor_cmds[i]));
     }
+
     return state_interfaces;
   }
 
@@ -226,6 +236,7 @@ private:
   static constexpr std::string_view actuator_prefix = "rotor";
   uint8_t nrotors = 0;
   std::vector<double> rotor_cmds;
+  std::vector<double> rotor_position;
 
   // buffer for PWM duty cycle ON/OFF counts [LEDx_ON_L, LEDx_ON_H, LEDx_OFF_L, LEDx_OFF_H]
   // ON count [LEDx_ON_L, LEDx_ON_H] is initialised to 0, PWM duty cycle always starts at 0
