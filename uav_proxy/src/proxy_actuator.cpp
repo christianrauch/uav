@@ -28,6 +28,13 @@ public:
         return iface.second.get_prefix_name().substr(0, actuator_prefix.size()) == actuator_prefix;
       });
 
+    if (nrotors > nrotors_max)
+    {
+      RCLCPP_FATAL_STREAM(
+        get_logger(), "ProxyActuator only supports up to '" << nrotors_max << "' rotors");
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
     pub_actuator =
       get_node()->create_publisher<mavros_msgs::msg::ActuatorControl>("~/actuators", 1);
 
@@ -36,6 +43,39 @@ public:
         pub_actuator);
 
     return CallbackReturn::SUCCESS;
+  }
+
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override
+  {
+    std::vector<hardware_interface::StateInterface> state_interfaces;
+
+    for (size_t i = 0; i < nrotors; ++i)
+    {
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+        hardware_interface::HW_IF_POSITION, &rotor_position[i]));
+    }
+
+    for (size_t i = 0; i < nrotors; ++i)
+    {
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+        hardware_interface::HW_IF_VELOCITY, &rotor_velocity[i]));
+    }
+
+    return state_interfaces;
+  }
+
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override
+  {
+    std::vector<hardware_interface::CommandInterface> command_interfaces;
+    for (size_t i = 0; i < nrotors; ++i)
+    {
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+        hardware_interface::HW_IF_VELOCITY, &rotor_velocity[i]));
+    }
+    return command_interfaces;
   }
 
   hardware_interface::return_type read(
@@ -48,11 +88,10 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & /*period*/) override
   {
     msg_ac.header.stamp = time;
+
     for (uint8_t i = 0; i < nrotors; i++)
     {
-      msg_ac.controls[i] = get_command<double>(
-        std::string{actuator_prefix} + "/" + std::to_string(i + 1) + "/" +
-        hardware_interface::HW_IF_VELOCITY);
+      msg_ac.controls[i] = rotor_velocity[i];
     }
 
     while (!pub_rt_actuator->try_publish(msg_ac));
@@ -62,10 +101,14 @@ public:
 
 private:
   static constexpr std::string_view actuator_prefix = "rotor";
+  static constexpr std::size_t nrotors_max =
+    std::tuple_size<mavros_msgs::msg::ActuatorControl::_controls_type>::value;
   uint8_t nrotors = 0;
   rclcpp::Publisher<mavros_msgs::msg::ActuatorControl>::SharedPtr pub_actuator;
   realtime_tools::RealtimePublisher<mavros_msgs::msg::ActuatorControl>::UniquePtr pub_rt_actuator;
   mavros_msgs::msg::ActuatorControl msg_ac;
+  std::array<double, nrotors_max> rotor_position;
+  std::array<double, nrotors_max> rotor_velocity;
 };
 
 }  // namespace uav::proxy
