@@ -1,9 +1,12 @@
+#include <control_msgs/msg/pid_state.hpp>
 #include <control_toolbox/pid.hpp>
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <pluginlib/class_list_macros.hpp>
+#include <realtime_tools/realtime_publisher.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 #include <uav_controllers/controller_angular_velocity_pid_parameters.hpp>
+#include "utils.hpp"
 
 namespace uav::controllers
 {
@@ -60,6 +63,15 @@ public:
     reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
 
     assert(command_interfaces.size() == n);
+
+    for (size_t i = 0; i < n; i++)
+    {
+      pub_pids[i] = get_node()->create_publisher<control_msgs::msg::PidState>(
+        "~/pid/" + interface_to_topic(command_interfaces[i]), rclcpp::SystemDefaultsQoS());
+      pub_rt_pids[i] =
+        std::make_unique<realtime_tools::RealtimePublisher<control_msgs::msg::PidState>>(
+          pub_pids[i]);
+    }
 
     if (configure_pid(params))
     {
@@ -142,7 +154,7 @@ public:
   }
 
   controller_interface::return_type update_and_write_commands(
-    const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
+    const rclcpp::Time & time, const rclcpp::Duration & period) override
   {
     // roll, pitch, yaw
     std::array<double, n> cmds;
@@ -154,6 +166,26 @@ public:
         get_node()->get_logger(), std::fixed << std::setprecision(2) << command_interfaces[i]
                                              << ": " << reference_interfaces_[i] << " <> " << state
                                              << " -> " << cmds[i] << " [rad/s]");
+
+      msg[i].header.stamp = time;
+      msg[i].timestep = period;
+
+      // error terms
+      pid_controllers[i].get_current_pid_errors(
+        msg[i].error,     // error = target - state
+        msg[i].i_term,    // weighted integral error
+        msg[i].error_dot  // derivative of error
+      );
+
+      // gains
+      const control_toolbox::Pid::Gains gains = pid_controllers[i].get_gains();
+      msg[i].p_gain = gains.p_gain_;
+      msg[i].i_gain = gains.i_gain_;
+      msg[i].d_gain = gains.d_gain_;
+
+      msg[i].output = pid_controllers[i].get_current_cmd();
+
+      pub_rt_pids[i]->try_publish(msg[i]);
     }
 
     bool status_ok = true;
@@ -185,6 +217,11 @@ private:
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_reference;
+
+  std::array<rclcpp::Publisher<control_msgs::msg::PidState>::SharedPtr, n> pub_pids;
+  std::array<realtime_tools::RealtimePublisher<control_msgs::msg::PidState>::UniquePtr, n>
+    pub_rt_pids;
+  std::array<control_msgs::msg::PidState, n> msg;
 };
 
 }  // namespace angular_velocity
