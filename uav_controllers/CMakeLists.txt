@@ -18,6 +18,7 @@ find_package(controller_interface REQUIRED)
 find_package(generate_parameter_library REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 find_package(control_toolbox REQUIRED)
@@ -68,6 +69,7 @@ target_link_libraries(controller_angular_velocity_pid PUBLIC
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   control_toolbox::control_toolbox
+  ${control_msgs_TARGETS}
 )
 
 generate_parameter_library(
