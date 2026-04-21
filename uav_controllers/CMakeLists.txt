@@ -87,6 +87,7 @@ target_link_libraries(controller_orientation_pid PUBLIC
   realtime_tools::realtime_tools
   control_toolbox::control_toolbox
   Eigen3::Eigen
+  ${control_msgs_TARGETS}
 )
 
 generate_parameter_library(
