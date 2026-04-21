@@ -104,6 +104,7 @@ target_link_libraries(controller_attitude_pid PUBLIC
   ${geometry_msgs_TARGETS}
   realtime_tools::realtime_tools
   Eigen3::Eigen
+  ${control_msgs_TARGETS}
 )
 
 generate_parameter_library(
