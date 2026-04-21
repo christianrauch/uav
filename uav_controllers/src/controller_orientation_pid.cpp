@@ -1,10 +1,13 @@
 #include <Eigen/Geometry>
+#include <control_msgs/msg/pid_state.hpp>
 #include <control_toolbox/pid.hpp>
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <pluginlib/class_list_macros.hpp>
+#include <realtime_tools/realtime_publisher.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 #include <uav_controllers/controller_orientation_pid_parameters.hpp>
+#include "utils.hpp"
 
 namespace uav::controllers
 {
@@ -17,23 +20,25 @@ class AngPosPID : public controller_interface::ChainableControllerInterface
 public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override
   {
-    const std::vector<std::string> interface_names = {
-      velocity_controller_name + "/angular_velocity.x",
-      velocity_controller_name + "/angular_velocity.y",
-      velocity_controller_name + "/angular_velocity.z",
-    };
-    return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
+    return {
+      controller_interface::interface_configuration_type::INDIVIDUAL,
+      {
+        std::format("{}/{}", velocity_controller_name, command_interfaces[0]),
+        std::format("{}/{}", velocity_controller_name, command_interfaces[1]),
+        std::format("{}/{}", velocity_controller_name, command_interfaces[2]),
+      }};
   }
 
   controller_interface::InterfaceConfiguration state_interface_configuration() const override
   {
-    const std::vector<std::string> interface_names = {
-      sensor_name + "/orientation.x",
-      sensor_name + "/orientation.y",
-      sensor_name + "/orientation.z",
-      sensor_name + "/orientation.w",
-    };
-    return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
+    return {
+      controller_interface::interface_configuration_type::INDIVIDUAL,
+      {
+        sensor_name + "/orientation.x",
+        sensor_name + "/orientation.y",
+        sensor_name + "/orientation.z",
+        sensor_name + "/orientation.w",
+      }};
   }
 
   controller_interface::CallbackReturn on_init() override
@@ -60,6 +65,16 @@ public:
 
     velocity_controller_name = params.velocity_controller_name;
     sensor_name = params.sensor_name;
+
+    for (size_t i = 0; i < n; i++)
+    {
+      pub_pids[i] = get_node()->create_publisher<control_msgs::msg::PidState>(
+        std::format("~/{}/{}", "pid", interface_to_topic(command_interfaces[i])),
+        rclcpp::SystemDefaultsQoS());
+      pub_rt_pids[i] =
+        std::make_unique<realtime_tools::RealtimePublisher<control_msgs::msg::PidState>>(
+          pub_pids[i]);
+    }
 
     if (configure_pid(params))
     {
@@ -150,7 +165,7 @@ public:
   }
 
   controller_interface::return_type update_and_write_commands(
-    const rclcpp::Time & /*time*/, const rclcpp::Duration & period) override
+    const rclcpp::Time & time, const rclcpp::Duration & period) override
   {
     const Eigen::Quaterniond q_ref{
       reference_interfaces_[3],  // w
@@ -199,15 +214,39 @@ public:
 
     const Eigen::Vector3d o = 2 / tau * q_err_A.vec();
 
+    assert(n == o.size());
+
     bool status_ok = true;
 
-    for (Eigen::Index i = 0; i < o.size(); i++)
+    for (Eigen::Index i = 0; i < n; i++)
     {
       const double cmd = pid_controllers[i].compute_command(o[i], period);
       RCLCPP_DEBUG_STREAM(
         get_node()->get_logger(), std::fixed << std::setprecision(2) << cmd_order[i] << ": " << o[i]
                                              << " -> " << cmd << " [rad]");
       status_ok &= command_interfaces_[i].set_value(cmd);
+
+      msg[i].header.stamp = time;
+      msg[i].timestep = period;
+
+      // error terms
+      pid_controllers[i].get_current_pid_errors(
+        msg[i].error,     // error = target - state
+        msg[i].i_error,   // weighted integral error
+        msg[i].error_dot  // derivative of error
+      );
+
+      // set redundant fields
+      msg[i].p_error = msg[i].error;
+      msg[i].d_error = msg[i].error_dot;
+
+      // gains
+      pid_controllers[i].get_gains(
+        msg[i].p_term, msg[i].i_term, msg[i].d_term, msg[i].i_max, msg[i].i_min);
+
+      msg[i].output = pid_controllers[i].get_current_cmd();
+
+      pub_rt_pids[i]->try_publish(msg[i]);
     }
 
     return controller_interface::return_type(!status_ok);
@@ -216,7 +255,15 @@ public:
 private:
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
 
-  static constexpr std::array<std::string, 3> cmd_order = {"roll", "pitch", "yaw"};
+  static constexpr int8_t n = 3;  // output or control dimension
+
+  static constexpr std::array<std::string, n> cmd_order = {"roll", "pitch", "yaw"};
+
+  static constexpr std::array<std::string_view, n> command_interfaces = {
+    "angular_velocity.x",
+    "angular_velocity.y",
+    "angular_velocity.z",
+  };
 
   static constexpr std::array<std::string_view, 4> reference_interface_names = {
     "orientation.x",
@@ -230,10 +277,15 @@ private:
   double tau;
   std::shared_ptr<ParamListener> param_listener;
 
-  std::array<control_toolbox::Pid, cmd_order.size()> pid_controllers;
+  std::array<control_toolbox::Pid, n> pid_controllers;
 
   rclcpp::Subscription<geometry_msgs::msg::Quaternion>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Quaternion> msg_reference;
+
+  std::array<rclcpp::Publisher<control_msgs::msg::PidState>::SharedPtr, n> pub_pids;
+  std::array<realtime_tools::RealtimePublisher<control_msgs::msg::PidState>::UniquePtr, n>
+    pub_rt_pids;
+  std::array<control_msgs::msg::PidState, n> msg;
 };
 
 }  // namespace angular_position
