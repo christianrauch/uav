@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - {ubuntu: noble, ros: jazzy}
+          - {ubuntu: resolute, ros: lyrical}
 
     steps:
       - uses: jspricke/ros-deb-builder-action@main
