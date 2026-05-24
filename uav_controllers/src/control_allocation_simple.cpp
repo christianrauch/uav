@@ -1,10 +1,10 @@
-#include <urdf/model.h>
 #include <Eigen/Dense>
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include <realtime_tools/realtime_thread_safe_box.hpp>
 #include <uav_controllers/control_allocation_simple_parameters.hpp>
+#include <urdf/model.hpp>
 
 namespace uav::control_allocation
 {
