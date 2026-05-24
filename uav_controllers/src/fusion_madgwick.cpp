@@ -1,5 +1,4 @@
 #include <imu_filter_madgwick/imu_filter.h>
-#include <urdf/model.h>
 #include <Eigen/Dense>
 #include <controller_interface/chainable_controller_interface.hpp>
 #include <hardware_interface/handle.hpp>
@@ -7,6 +6,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <string>
 #include <uav_controllers/fusion_madgwick_parameters.hpp>
+#include <urdf/model.hpp>
 #include <vector>
 
 namespace uav::controllers
