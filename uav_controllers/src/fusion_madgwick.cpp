@@ -45,6 +45,30 @@ public:
     return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
   }
 
+  std::vector<hardware_interface::StateInterface::SharedPtr> on_export_state_interfaces_list()
+  {
+    std::vector<hardware_interface::StateInterface::SharedPtr> state_interfaces;
+
+    for (const std::string_view & state_interface_name : state_interface_names)
+    {
+      state_interfaces.push_back(
+        std::make_shared<hardware_interface::StateInterface>(
+          get_node()->get_name(), std::string{state_interface_name}));
+    }
+
+    if (use_magnetometer)
+    {
+      for (const std::string_view & state_interface_name : state_interface_names_magnetometer)
+      {
+        state_interfaces.push_back(
+          std::make_shared<hardware_interface::StateInterface>(
+            get_node()->get_name(), std::string{state_interface_name}));
+      }
+    }
+
+    return state_interfaces;
+  }
+
   controller_interface::CallbackReturn on_init() override
   {
     model.initString(get_robot_description());
@@ -64,15 +88,6 @@ public:
     sensor_name = params.sensor_name;
 
     use_magnetometer = params.use_magnetometer;
-
-    exported_state_interface_names_.assign(
-      state_interface_names.begin(), state_interface_names.end());
-    if (use_magnetometer)
-    {
-      exported_state_interface_names_.insert(
-        exported_state_interface_names_.end(), state_interface_names_magnetometer.begin(),
-        state_interface_names_magnetometer.end());
-    }
 
     // get rotation between base link and IMU link
     if (const urdf::LinkConstSharedPtr imu_link = model.getLink(sensor_name))
@@ -180,29 +195,35 @@ public:
 
     // set exported state interfaces
 
+    bool status_ok = true;
+
     // gyroscope
-    state_interfaces_values_[0] = angular_velocity.x();
-    state_interfaces_values_[1] = angular_velocity.y();
-    state_interfaces_values_[2] = angular_velocity.z();
+    status_ok &= ordered_exported_state_interfaces_[0]->set_value(angular_velocity.x());
+    status_ok &= ordered_exported_state_interfaces_[1]->set_value(angular_velocity.y());
+    status_ok &= ordered_exported_state_interfaces_[2]->set_value(angular_velocity.z());
+
     // accelerometer
-    state_interfaces_values_[3] = linear_acceleration.x();
-    state_interfaces_values_[4] = linear_acceleration.y();
-    state_interfaces_values_[5] = linear_acceleration.z();
+    status_ok &= ordered_exported_state_interfaces_[3]->set_value(linear_acceleration.x());
+    status_ok &= ordered_exported_state_interfaces_[4]->set_value(linear_acceleration.y());
+    status_ok &= ordered_exported_state_interfaces_[5]->set_value(linear_acceleration.z());
+
     // orientation
-    filter.getOrientation(
-      // quaternion scalar part
-      state_interfaces_values_[6],
-      // quaternion vector part
-      state_interfaces_values_[7], state_interfaces_values_[8], state_interfaces_values_[9]);
+    Eigen::Quaterniond q;
+    filter.getOrientation(q.w(), q.x(), q.y(), q.z());
+    status_ok &= ordered_exported_state_interfaces_[6]->set_value(q.w());
+    status_ok &= ordered_exported_state_interfaces_[7]->set_value(q.x());
+    status_ok &= ordered_exported_state_interfaces_[8]->set_value(q.y());
+    status_ok &= ordered_exported_state_interfaces_[9]->set_value(q.z());
+
     // magnetometer
     if (use_magnetometer && magnetic_field.has_value())
     {
-      state_interfaces_values_[10] = magnetic_field->x();
-      state_interfaces_values_[11] = magnetic_field->y();
-      state_interfaces_values_[12] = magnetic_field->z();
+      status_ok &= ordered_exported_state_interfaces_[10]->set_value(magnetic_field->x());
+      status_ok &= ordered_exported_state_interfaces_[11]->set_value(magnetic_field->y());
+      status_ok &= ordered_exported_state_interfaces_[12]->set_value(magnetic_field->z());
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::return_type(!status_ok);
   }
 
 private:
