@@ -61,6 +61,7 @@ def generate_launch_description():
         executable='spawner',
         additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
+            '--param-file', robot_controllers,
             '--activate-as-group',
             'imu_sensor_broadcaster',
             'fusion',
@@ -75,6 +76,7 @@ def generate_launch_description():
         executable='spawner',
         additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         arguments=[
+            '--param-file', robot_controllers,
             '--inactive',
             'control_allocation',
             'angular_velocity',
