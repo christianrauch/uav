@@ -52,7 +52,8 @@ public:
 
     nrotors = std::count_if(
       joint_command_interfaces_.cbegin(), joint_command_interfaces_.cend(),
-      [](const auto & iface) {
+      [](const auto & iface)
+      {
         return iface.second.get_prefix_name().substr(0, actuator_prefix.size()) == actuator_prefix;
       });
 
@@ -167,16 +168,18 @@ public:
 
     for (size_t i = 0; i < nrotors; ++i)
     {
-      state_interfaces.emplace_back(hardware_interface::StateInterface(
-        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
-        hardware_interface::HW_IF_POSITION, &rotor_position[i]));
+      state_interfaces.emplace_back(
+        hardware_interface::StateInterface(
+          std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+          hardware_interface::HW_IF_POSITION, &rotor_position[i]));
     }
 
     for (size_t i = 0; i < nrotors; ++i)
     {
-      state_interfaces.emplace_back(hardware_interface::StateInterface(
-        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
-        hardware_interface::HW_IF_VELOCITY, &rotor_cmds[i]));
+      state_interfaces.emplace_back(
+        hardware_interface::StateInterface(
+          std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+          hardware_interface::HW_IF_VELOCITY, &rotor_cmds[i]));
     }
 
     return state_interfaces;
@@ -187,9 +190,10 @@ public:
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (size_t i = 0; i < nrotors; ++i)
     {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        std::string{actuator_prefix} + "/" + std::to_string(i + 1),
-        hardware_interface::HW_IF_VELOCITY, &rotor_cmds[i]));
+      command_interfaces.emplace_back(
+        hardware_interface::CommandInterface(
+          std::string{actuator_prefix} + "/" + std::to_string(i + 1),
+          hardware_interface::HW_IF_VELOCITY, &rotor_cmds[i]));
     }
     return command_interfaces;
   }
