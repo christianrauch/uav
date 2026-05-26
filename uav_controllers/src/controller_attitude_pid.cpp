@@ -45,6 +45,20 @@ public:
       }};
   }
 
+  std::vector<hardware_interface::CommandInterface::SharedPtr> on_export_reference_interfaces_list()
+  {
+    std::vector<hardware_interface::CommandInterface::SharedPtr> reference_interfaces;
+
+    for (const std::string_view & reference_interface_name : reference_interface_names)
+    {
+      reference_interfaces.push_back(
+        std::make_shared<hardware_interface::CommandInterface>(
+          get_node()->get_name(), std::string{reference_interface_name}));
+    }
+
+    return reference_interfaces;
+  }
+
   controller_interface::CallbackReturn on_init() override
   {
     param_listener = std::make_shared<ParamListener>(get_node());
@@ -71,11 +85,6 @@ public:
   CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override
   {
     const Params params = param_listener->get_params();
-
-    exported_reference_interface_names_.assign(
-      reference_interface_names.begin(), reference_interface_names.end());
-    // levelled and no yaw rotation by default
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
 
     velocity_controller_name = params.velocity_controller_name;
     sensor_name = params.sensor_name;
@@ -104,16 +113,17 @@ public:
   controller_interface::return_type update_reference_from_subscribers(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
+    bool status_ok = true;
+
     if (const std::optional<geometry_msgs::msg::Vector3> msg = msg_reference.try_get())
     {
-      reference_interfaces_ = {
-        msg->x,  // roll [rad]
-        msg->y,  // pitch [rad]
-        msg->z,  // yaw rate [rad/s]
-      };
+      status_ok &= ordered_exported_reference_interfaces_[0]->set_value(msg->x);  // roll [rad]
+      status_ok &= ordered_exported_reference_interfaces_[1]->set_value(msg->y);  // pitch [rad]
+      status_ok &=
+        ordered_exported_reference_interfaces_[2]->set_value(msg->z);  // yaw rate [rad/s]
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::return_type(!status_ok);
   }
 
   controller_interface::return_type update_and_write_commands(
@@ -139,9 +149,16 @@ public:
     // pitch: angle between body x-axis and world z-orthogonal plane (clockwise rot. about y-axis)
     const double pitch_state = -std::asin(R_state(2, 0));
 
-    const double roll_err = clamp_deg(reference_interfaces_[0]) - roll_state;
-    const double pitch_err = clamp_deg(reference_interfaces_[1]) - pitch_state;
-    const double yaw_rate_err = reference_interfaces_[2] - wz;
+    // levelled and no yaw rotation by default
+    const std::array<double, n> reference_values = {
+      ordered_exported_reference_interfaces_[0]->get_optional().value_or(0),
+      ordered_exported_reference_interfaces_[1]->get_optional().value_or(0),
+      ordered_exported_reference_interfaces_[2]->get_optional().value_or(0),
+    };
+
+    const double roll_err = clamp_deg(reference_values[0]) - roll_state;
+    const double pitch_err = clamp_deg(reference_values[1]) - pitch_state;
+    const double yaw_rate_err = reference_values[2] - wz;
 
     if (command_interfaces_.size() != 3)
     {
@@ -203,7 +220,7 @@ public:
                  << command_interfaces_[0].get_optional().value_or(nan) << " [rad/s]" << std::endl
                  << "pitch: " << pitch_state << " > " << pitch_err << " -> "
                  << command_interfaces_[1].get_optional().value_or(nan) << " [rad/s]" << std::endl
-                 << "yaw_rate: " << reference_interfaces_[2] << " > " << wz << " -> "
+                 << "yaw_rate: " << reference_values[2] << " > " << wz << " -> "
                  << command_interfaces_[2].get_optional().value_or(nan) << " [rad/s]");
 
     return controller_interface::return_type(!status_ok);
