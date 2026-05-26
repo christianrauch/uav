@@ -37,6 +37,20 @@ public:
     return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
   }
 
+  std::vector<hardware_interface::CommandInterface::SharedPtr> on_export_reference_interfaces_list()
+  {
+    std::vector<hardware_interface::CommandInterface::SharedPtr> reference_interfaces;
+
+    for (const std::string_view & reference_interface_name : reference_interface_names)
+    {
+      reference_interfaces.push_back(
+        std::make_shared<hardware_interface::CommandInterface>(
+          get_node()->get_name(), std::string{reference_interface_name}));
+    }
+
+    return reference_interfaces;
+  }
+
   controller_interface::CallbackReturn on_init() override
   {
     param_listener = std::make_shared<ParamListener>(get_node());
@@ -56,11 +70,6 @@ public:
     mixer_name = params.mixer;
     command_interfaces = params.command_interfaces;
     sensor_name = params.sensor_name;
-
-    // set reference interface
-    exported_reference_interface_names_.assign(
-      reference_interface_names.begin(), reference_interface_names.end());
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), nan);
 
     assert(command_interfaces.size() == n);
 
@@ -141,16 +150,16 @@ public:
   controller_interface::return_type update_reference_from_subscribers(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
+    bool status_ok = true;
+
     if (const std::optional<geometry_msgs::msg::Vector3> msg = msg_reference.try_get())
     {
-      reference_interfaces_ = {
-        msg->x,  // roll
-        msg->y,  // pitch
-        msg->z,  // yaw
-      };
+      status_ok &= ordered_exported_reference_interfaces_[0]->set_value(msg->x);  // roll
+      status_ok &= ordered_exported_reference_interfaces_[1]->set_value(msg->y);  // pitch
+      status_ok &= ordered_exported_reference_interfaces_[2]->set_value(msg->z);  // yaw
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::return_type(!status_ok);
   }
 
   controller_interface::return_type update_and_write_commands(
@@ -161,11 +170,13 @@ public:
     for (size_t i = 0; i < pid_controllers.size(); i++)
     {
       const double state = state_interfaces_[i].get_optional().value_or(nan);
-      cmds[i] = pid_controllers[i].compute_command(reference_interfaces_[i] - state, period);
+      const double reference_value =
+        ordered_exported_reference_interfaces_[i]->get_optional().value_or(0);
+      cmds[i] = pid_controllers[i].compute_command(reference_value - state, period);
       RCLCPP_DEBUG_STREAM(
         get_node()->get_logger(), std::fixed << std::setprecision(2) << command_interfaces[i]
-                                             << ": " << reference_interfaces_[i] << " <> " << state
-                                             << " -> " << cmds[i] << " [rad/s]");
+                                             << ": " << reference_value << " <> " << state << " -> "
+                                             << cmds[i] << " [rad/s]");
 
       msg[i].header.stamp = time;
       msg[i].timestep = period;
