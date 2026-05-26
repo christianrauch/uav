@@ -27,6 +27,20 @@ public:
     return {controller_interface::interface_configuration_type::NONE};
   }
 
+  std::vector<hardware_interface::CommandInterface::SharedPtr> on_export_reference_interfaces_list()
+  {
+    std::vector<hardware_interface::CommandInterface::SharedPtr> reference_interfaces;
+
+    for (const std::string & reference_interface_name : reference_interface_names)
+    {
+      reference_interfaces.push_back(
+        std::make_shared<hardware_interface::CommandInterface>(
+          get_node()->get_name(), reference_interface_name, "double", "0"));
+    }
+
+    return reference_interfaces;
+  }
+
   controller_interface::CallbackReturn on_init() override
   {
     // manual control subscriber for reference interface
@@ -84,11 +98,6 @@ public:
   {
     min_speed = param_listener->get_params().min_output;
 
-    // set reference interface
-    exported_reference_interface_names_.assign(
-      reference_interface_names.begin(), reference_interface_names.end());
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
-
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -107,24 +116,28 @@ public:
   controller_interface::return_type update_reference_from_subscribers(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
+    bool status_ok = true;
+
     if (const std::optional<geometry_msgs::msg::Twist> msg = msg_control.try_get())
     {
-      reference_interfaces_ = {
-        msg->linear.z,   // thrust
-        msg->angular.x,  // roll
-        msg->angular.y,  // pitch
-        msg->angular.z,  // yaw
-      };
+      status_ok &= ordered_exported_reference_interfaces_[0]->set_value(msg->linear.z);   // thrust
+      status_ok &= ordered_exported_reference_interfaces_[1]->set_value(msg->angular.x);  // roll
+      status_ok &= ordered_exported_reference_interfaces_[2]->set_value(msg->angular.y);  // pitch
+      status_ok &= ordered_exported_reference_interfaces_[3]->set_value(msg->angular.z);  // yaw
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::return_type(!status_ok);
   }
 
   controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
-    const Eigen::Map<Eigen::Vector4d> control_input(
-      reference_interfaces_.data(), reference_interfaces_.size());
+    const Eigen::Vector4d control_input{
+      ordered_exported_reference_interfaces_[0]->get_optional().value_or(0),  // thrust
+      ordered_exported_reference_interfaces_[1]->get_optional().value_or(0),  // roll
+      ordered_exported_reference_interfaces_[2]->get_optional().value_or(0),  // pitch
+      ordered_exported_reference_interfaces_[3]->get_optional().value_or(0),  // yaw
+    };
 
     Eigen::ArrayXd w = M * control_input;
 
@@ -151,9 +164,11 @@ public:
     }
 
     // scale all motors by thrust command
-    w = min_speed + (w - min_speed) * reference_interfaces_[0];
+    w = min_speed + (w - min_speed) * control_input[0];
 
     RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "w [1]: " << w.transpose());
+
+    assert(command_interfaces_.size() == nrotors);
 
     bool status_ok = true;
     for (std::size_t i = 0; i < nrotors; i++)
