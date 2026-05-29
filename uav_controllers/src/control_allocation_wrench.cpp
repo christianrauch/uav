@@ -28,6 +28,20 @@ public:
     return {controller_interface::interface_configuration_type::NONE};
   }
 
+  std::vector<hardware_interface::CommandInterface::SharedPtr> on_export_reference_interfaces_list()
+  {
+    std::vector<hardware_interface::CommandInterface::SharedPtr> reference_interfaces;
+
+    for (const std::string_view & reference_interface_name : reference_interface_names)
+    {
+      reference_interfaces.push_back(
+        std::make_shared<hardware_interface::CommandInterface>(
+          get_node()->get_name(), std::string{reference_interface_name}, "double", "0"));
+    }
+
+    return reference_interfaces;
+  }
+
   controller_interface::CallbackReturn on_init() override
   {
     // manual control subscriber for reference interface
@@ -111,11 +125,6 @@ public:
   {
     const Params params = param_listener->get_params();
 
-    // set reference interface
-    exported_reference_interface_names_.assign(
-      reference_interface_names.begin(), reference_interface_names.end());
-    reference_interfaces_.resize(exported_reference_interface_names_.size(), 0);
-
     // thrust/force and torque coefficients [1] (unitless))
     const double cT = params.cT;  // thrust
     const double cQ = params.cQ;  // torque
@@ -140,22 +149,36 @@ public:
   controller_interface::return_type update_reference_from_subscribers(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
+    bool status_ok = true;
+
     if (const std::optional<geometry_msgs::msg::Wrench> msg = msg_control.try_get())
     {
-      reference_interfaces_ = {
-        msg->force.x,  msg->force.y,  msg->force.z,   // force
-        msg->torque.x, msg->torque.y, msg->torque.z,  // torque
-      };
+      // force
+      status_ok &= ordered_exported_reference_interfaces_[0]->set_value(msg->force.x);
+      status_ok &= ordered_exported_reference_interfaces_[1]->set_value(msg->force.y);
+      status_ok &= ordered_exported_reference_interfaces_[2]->set_value(msg->force.z);
+      // torque
+      status_ok &= ordered_exported_reference_interfaces_[3]->set_value(msg->torque.x);
+      status_ok &= ordered_exported_reference_interfaces_[4]->set_value(msg->torque.y);
+      status_ok &= ordered_exported_reference_interfaces_[5]->set_value(msg->torque.z);
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::return_type(!status_ok);
   }
 
   controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
-    const Eigen::Map<Eigen::Vector<double, 6>> control_input(
-      reference_interfaces_.data(), reference_interfaces_.size());
+    const Eigen::Vector<double, 6> control_input{
+      // force
+      ordered_exported_reference_interfaces_[0]->get_optional().value_or(0),
+      ordered_exported_reference_interfaces_[1]->get_optional().value_or(0),
+      ordered_exported_reference_interfaces_[2]->get_optional().value_or(0),
+      // torque
+      ordered_exported_reference_interfaces_[3]->get_optional().value_or(0),
+      ordered_exported_reference_interfaces_[4]->get_optional().value_or(0),
+      ordered_exported_reference_interfaces_[5]->get_optional().value_or(0),
+    };
 
     const Eigen::ArrayXd w = (Ginv * control_input).array().max(0).sqrt();
 
