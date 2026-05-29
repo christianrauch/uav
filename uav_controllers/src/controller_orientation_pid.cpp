@@ -41,6 +41,20 @@ public:
       }};
   }
 
+  std::vector<hardware_interface::CommandInterface::SharedPtr> on_export_reference_interfaces_list()
+  {
+    std::vector<hardware_interface::CommandInterface::SharedPtr> reference_interfaces;
+
+    for (const std::string_view & reference_interface_name : reference_interface_names)
+    {
+      reference_interfaces.push_back(
+        std::make_shared<hardware_interface::CommandInterface>(
+          get_node()->get_name(), std::string{reference_interface_name}));
+    }
+
+    return reference_interfaces;
+  }
+
   controller_interface::CallbackReturn on_init() override
   {
     sub_reference = get_node()->create_subscription<geometry_msgs::msg::Quaternion>(
@@ -151,27 +165,27 @@ public:
   controller_interface::return_type update_reference_from_subscribers(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
+    bool status_ok = true;
+
     if (const std::optional<geometry_msgs::msg::Quaternion> msg = msg_reference.try_get())
     {
-      reference_interfaces_ = {
-        msg->x,
-        msg->y,
-        msg->z,
-        msg->w,
-      };
+      status_ok &= ordered_exported_reference_interfaces_[0]->set_value(msg->x);
+      status_ok &= ordered_exported_reference_interfaces_[1]->set_value(msg->y);
+      status_ok &= ordered_exported_reference_interfaces_[2]->set_value(msg->z);
+      status_ok &= ordered_exported_reference_interfaces_[3]->set_value(msg->w);
     }
 
-    return controller_interface::return_type::OK;
+    return controller_interface::return_type(!status_ok);
   }
 
   controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & time, const rclcpp::Duration & period) override
   {
     const Eigen::Quaterniond q_ref{
-      reference_interfaces_[3],  // w
-      reference_interfaces_[0],  // x
-      reference_interfaces_[1],  // y
-      reference_interfaces_[2],  // z
+      ordered_exported_reference_interfaces_[3]->get_optional().value_or(1),  // w
+      ordered_exported_reference_interfaces_[0]->get_optional().value_or(0),  // x
+      ordered_exported_reference_interfaces_[1]->get_optional().value_or(0),  // y
+      ordered_exported_reference_interfaces_[2]->get_optional().value_or(0),  // z
     };
 
     const Eigen::Quaterniond q_state{
