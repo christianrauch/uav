@@ -86,15 +86,15 @@ public:
       return hardware_interface::return_type::OK;
     }
 
-    sbus_channels_decode(buffer + 1);
+    sbus_channels_decode();
 
     // boolean channels
-    channels_digital[0] = buffer[23] & 0x01;
-    channels_digital[1] = buffer[23] & 0x02;
+    channels_digital[0] = frame[23] & 0x01;
+    channels_digital[1] = frame[23] & 0x02;
 
     // lost frame and failsafe (multiple lost frames) indicators
-    const bool frame_lost = buffer[23] & 0x04;
-    const bool failsafe = buffer[23] & 0x08;
+    const bool frame_lost = frame[23] & 0x04;
+    const bool failsafe = frame[23] & 0x08;
 
     set_state<bool>(std::string{sensor_name} + "/failsafe", failsafe);
 
@@ -129,7 +129,7 @@ public:
 private:
   bool sbus_read_frame()
   {
-    const int n = ::read(fd, &buffer, sizeof(buffer));
+    const int n = ::read(fd, frame.data(), frame.size());
 
     if (n == 0)
     {
@@ -137,7 +137,7 @@ private:
     }
 
     // we expect to read exactly one S.BUS frame, skip otherwise
-    if (n != N || buffer[0] != SBUS_HEADER || buffer[24] != SBUS_END)
+    if (n != N || frame[0] != SBUS_HEADER || frame[24] != SBUS_END)
     {
       RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame!");
       return false;
@@ -146,24 +146,24 @@ private:
     return true;
   }
 
-  void sbus_channels_decode(const uint8_t * payload)
+  void sbus_channels_decode()
   {
-    channels[0] = (uint16_t)((payload[0] | payload[1] << 8) & 0x07FF);
-    channels[1] = (uint16_t)((payload[1] >> 3 | payload[2] << 5) & 0x07FF);
-    channels[2] = (uint16_t)((payload[2] >> 6 | payload[3] << 2 | payload[4] << 10) & 0x07FF);
-    channels[3] = (uint16_t)((payload[4] >> 1 | payload[5] << 7) & 0x07FF);
-    channels[4] = (uint16_t)((payload[5] >> 4 | payload[6] << 4) & 0x07FF);
-    channels[5] = (uint16_t)((payload[6] >> 7 | payload[7] << 1 | payload[8] << 9) & 0x07FF);
-    channels[6] = (uint16_t)((payload[8] >> 2 | payload[9] << 6) & 0x07FF);
-    channels[7] = (uint16_t)((payload[9] >> 5 | payload[10] << 3) & 0x07FF);
-    channels[8] = (uint16_t)((payload[11] | payload[12] << 8) & 0x07FF);
-    channels[9] = (uint16_t)((payload[12] >> 3 | payload[13] << 5) & 0x07FF);
-    channels[10] = (uint16_t)((payload[13] >> 6 | payload[14] << 2 | payload[15] << 10) & 0x07FF);
-    channels[11] = (uint16_t)((payload[15] >> 1 | payload[16] << 7) & 0x07FF);
-    channels[12] = (uint16_t)((payload[16] >> 4 | payload[17] << 4) & 0x07FF);
-    channels[13] = (uint16_t)((payload[17] >> 7 | payload[18] << 1 | payload[19] << 9) & 0x07FF);
-    channels[14] = (uint16_t)((payload[19] >> 2 | payload[20] << 6) & 0x07FF);
-    channels[15] = (uint16_t)((payload[20] >> 5 | payload[21] << 3) & 0x07FF);
+    channels[0] = (uint16_t)((frame[1] | frame[2] << 8) & 0x07FF);
+    channels[1] = (uint16_t)((frame[2] >> 3 | frame[3] << 5) & 0x07FF);
+    channels[2] = (uint16_t)((frame[3] >> 6 | frame[4] << 2 | frame[5] << 10) & 0x07FF);
+    channels[3] = (uint16_t)((frame[5] >> 1 | frame[6] << 7) & 0x07FF);
+    channels[4] = (uint16_t)((frame[6] >> 4 | frame[7] << 4) & 0x07FF);
+    channels[5] = (uint16_t)((frame[7] >> 7 | frame[8] << 1 | frame[9] << 9) & 0x07FF);
+    channels[6] = (uint16_t)((frame[9] >> 2 | frame[10] << 6) & 0x07FF);
+    channels[7] = (uint16_t)((frame[10] >> 5 | frame[11] << 3) & 0x07FF);
+    channels[8] = (uint16_t)((frame[12] | frame[13] << 8) & 0x07FF);
+    channels[9] = (uint16_t)((frame[13] >> 3 | frame[14] << 5) & 0x07FF);
+    channels[10] = (uint16_t)((frame[14] >> 6 | frame[15] << 2 | frame[16] << 10) & 0x07FF);
+    channels[11] = (uint16_t)((frame[16] >> 1 | frame[17] << 7) & 0x07FF);
+    channels[12] = (uint16_t)((frame[17] >> 4 | frame[18] << 4) & 0x07FF);
+    channels[13] = (uint16_t)((frame[18] >> 7 | frame[19] << 1 | frame[20] << 9) & 0x07FF);
+    channels[14] = (uint16_t)((frame[20] >> 2 | frame[21] << 6) & 0x07FF);
+    channels[15] = (uint16_t)((frame[21] >> 5 | frame[22] << 3) & 0x07FF);
   }
 
   static constexpr std::string_view sensor_name = "rc";
@@ -173,7 +173,7 @@ private:
 
   // SBUS frame
   static constexpr size_t N = 25;
-  uint8_t buffer[N];
+  std::array<uint8_t, N> frame;
   static constexpr uint8_t SBUS_HEADER = 0x0F;
   static constexpr uint8_t SBUS_END = 0x0;
   std::array<uint16_t, max_channels> channels;  // 1 - 16: 11 bit
