@@ -81,17 +81,8 @@ public:
   hardware_interface::return_type read(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
-    const int n = ::read(fd, &buffer, sizeof(buffer));
-
-    if (n == 0)
+    if (!sbus_read_frame())
     {
-      return hardware_interface::return_type::OK;
-    }
-
-    // we expect to read exactly one S.BUS frame, skip otherwise
-    if (n != N || buffer[0] != SBUS_HEADER || buffer[24] != SBUS_END)
-    {
-      RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame!");
       return hardware_interface::return_type::OK;
     }
 
@@ -136,6 +127,25 @@ public:
   }
 
 private:
+  bool sbus_read_frame()
+  {
+    const int n = ::read(fd, &buffer, sizeof(buffer));
+
+    if (n == 0)
+    {
+      return false;
+    }
+
+    // we expect to read exactly one S.BUS frame, skip otherwise
+    if (n != N || buffer[0] != SBUS_HEADER || buffer[24] != SBUS_END)
+    {
+      RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame!");
+      return false;
+    }
+
+    return true;
+  }
+
   void sbus_channels_decode(const uint8_t * payload)
   {
     channels[0] = (uint16_t)((payload[0] | payload[1] << 8) & 0x07FF);
