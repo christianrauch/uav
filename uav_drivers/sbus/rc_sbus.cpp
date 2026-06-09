@@ -22,6 +22,17 @@ public:
       return bcr;
     }
 
+    if (params.hardware_info.rw_rate > max_sbus_rate)
+    {
+      RCLCPP_FATAL_STREAM(
+        get_logger(), std::format(
+                        "S.BUS interface '{}' ({}) is configured with a 'rw_rate' of {} Hz. "
+                        "The maximum S.BUS framerate is {} Hz. Reduce 'rw_rate'.",
+                        params.hardware_info.name, params.hardware_info.hardware_plugin_name,
+                        params.hardware_info.rw_rate, max_sbus_rate));
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
     // check if sensor exist
     const bool has_sensor =
       params.hardware_info.sensors.cend() !=
@@ -199,6 +210,9 @@ private:
     opt.c_ospeed = 100000;
     return opt;
   }();
+
+  // 8E2: 8/12 bits used for SBUS frame
+  static constexpr double max_sbus_rate = options.c_ospeed * (8. / 12.) / (N * 8);
 };
 
 }  // namespace rc
