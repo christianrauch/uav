@@ -85,6 +85,7 @@ rotor_state_broadcaster:
 
 rc_broadcaster:
   ros__parameters:
+    update_rate: 100
     interfaces: ["rc/channel/1", "rc/channel/2", "rc/channel/3", "rc/channel/4", "rc/channel/5", "rc/channel/6", "rc/channel/7", "rc/channel/8"]
 
 control_allocation:
