@@ -54,7 +54,8 @@
     <xacro:rotors />
   </ros2_control>
 
-  <ros2_control name="rc" type="sensor">
+  <!-- FrSky S.BUS frame is transmitted every 9 ms -->
+  <ros2_control name="rc" type="sensor" rw_rate="100">
     <hardware>
       <plugin>uav/drivers/SBUS</plugin>
       <param name="device">/dev/ttyAMA0</param>
