@@ -108,7 +108,13 @@ public:
   hardware_interface::return_type read(
     const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override
   {
-    if (!sbus_read_frame())
+    const auto tstart = std::chrono::steady_clock::now();
+    const bool suc = sbus_read_frame();
+    const auto tend = std::chrono::steady_clock::now();
+    const auto read_dur_us =
+      std::chrono::duration_cast<std::chrono::microseconds>(tend - tstart).count();
+
+    if (!suc)
     {
       return hardware_interface::return_type::OK;
     }
@@ -124,6 +130,12 @@ public:
     const bool failsafe = frame[23] & 0x08;
 
     set_state<bool>(std::string{sensor_name} + "/failsafe", failsafe);
+
+    RCLCPP_DEBUG_STREAM(
+      get_logger(),
+      std::format(
+        "S.BUS channels ({} us):\n{} failsafe: {}", read_dur_us,
+        fmt::format("[{:4}]", fmt::join(channels.begin(), channels.begin() + 8, ", ")), failsafe));
 
     // show connection lost/recovered messages once
     if (!connection_lost && failsafe)
