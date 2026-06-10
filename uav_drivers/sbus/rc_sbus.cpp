@@ -142,6 +142,13 @@ private:
   {
     const int n = ::read(fd, frame.data(), frame.size());
 
+    if (n == -1)
+    {
+      RCLCPP_ERROR_STREAM(
+        get_logger(), "Error reading from serial port: " << strerror(errno) << std::endl);
+      return false;
+    }
+
     if (n == 0)
     {
       return false;
