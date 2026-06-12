@@ -1,5 +1,6 @@
 #include <asm/termbits.h>
 #include <fcntl.h>
+#include <linux/serial.h>
 #include <sys/ioctl.h>
 #include <hardware_interface/sensor_interface.hpp>
 #include <pluginlib/class_list_macros.hpp>
@@ -76,6 +77,21 @@ public:
     if (ioctl(fd, TCSETS2, &options) < 0)
     {
       RCLCPP_ERROR_STREAM(get_logger(), "Failed to configure serial port: " << strerror(errno));
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    struct serial_struct ser_info;
+    if (ioctl(fd, TIOCGSERIAL, &ser_info) < 0)
+    {
+      RCLCPP_ERROR_STREAM(get_logger(), "TIOCGSERIAL failed: " << strerror(errno));
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+
+    ser_info.flags |= ASYNC_LOW_LATENCY;
+
+    if (ioctl(fd, TIOCSSERIAL, &ser_info) < 0)
+    {
+      RCLCPP_ERROR_STREAM(get_logger(), "TIOCSSERIAL failed: " << strerror(errno));
       return hardware_interface::CallbackReturn::ERROR;
     }
 
