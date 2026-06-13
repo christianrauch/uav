@@ -168,26 +168,79 @@ public:
 private:
   bool sbus_read_frame()
   {
-    const int n = ::read(fd, frame.data(), frame.size());
-
-    if (n == -1)
+    int bytes_available;
+    if (ioctl(fd, FIONREAD, &bytes_available) < 0)
     {
-      RCLCPP_ERROR_STREAM(
-        get_logger(), "Error reading from serial port: " << strerror(errno) << std::endl);
+      RCLCPP_ERROR_STREAM(get_logger(), "FIONREAD failed: " << strerror(errno));
       return false;
     }
 
-    if (n == 0)
+    if (bytes_available > 2 * int(N))
     {
+      // flush the buffer if more than two frames are available
+      if (ioctl(fd, TCFLSH, TCIFLUSH) < 0)
+      {
+        RCLCPP_ERROR_STREAM(get_logger(), "TCFLSH failed: " << strerror(errno));
+      }
+
       return false;
     }
 
-    // we expect to read exactly one S.BUS frame, skip otherwise
-    if (n != N || frame[0] != SBUS_HEADER || frame[24] != SBUS_END)
+    // reset buffer
+    frame.fill(0xFF);
+
+    bool found_header = false;
+
+    ssize_t i = 0;
+
+    while (true)
     {
-      RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame!");
-      return false;
+      const ssize_t n = ::read(fd, frame.data() + i, frame.size() - i);
+
+      if (n == -1)
+      {
+        RCLCPP_ERROR_STREAM(get_logger(), "Error reading from serial port: " << strerror(errno));
+        return false;
+      }
+
+      // VMIN = 1, we expect to read at least 1 byte
+      assert(n > 0);
+
+      if (!found_header)
+      {
+        const bool has_header = frame[0] == SBUS_HEADER;
+        found_header = !found_header && has_header;
+
+        if (!found_header)
+        {
+          // continue searching for header
+          continue;
+        }
+      }
+
+      if ((i + n) == N)
+      {
+        // read maximum frame length
+        if (frame[N - 1] == SBUS_END)
+        {
+          // found end byte
+          break;
+        }
+        else
+        {
+          // reset and repeat
+          RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame: incorrect end byte!");
+          found_header = false;
+          i = 0;
+          continue;
+        }
+      }
+
+      // continue reading bytes into frame buffer
+      i += n;
     }
+
+    assert(frame[0] == SBUS_HEADER && frame[24] == SBUS_END);
 
     return true;
   }
@@ -243,6 +296,7 @@ private:
     struct termios2 opt;
     opt.c_cflag = CS8 | CSTOPB | PARENB | CLOCAL | CREAD | BOTHER;
     opt.c_ospeed = 100000;
+    opt.c_cc[VMIN] = 1;
     return opt;
   }();
 
