@@ -168,26 +168,101 @@ public:
 private:
   bool sbus_read_frame()
   {
-    const int n = ::read(fd, frame.data(), frame.size());
-
-    if (n == -1)
+    int bytes_available;
+    if (ioctl(fd, FIONREAD, &bytes_available) < 0)
     {
-      RCLCPP_ERROR_STREAM(
-        get_logger(), "Error reading from serial port: " << strerror(errno) << std::endl);
+      RCLCPP_ERROR_STREAM(get_logger(), "FIONREAD failed: " << strerror(errno));
       return false;
     }
 
-    if (n == 0)
+    if (bytes_available == 0)
     {
+      // no new data, return and reuse old data
       return false;
     }
 
-    // we expect to read exactly one S.BUS frame, skip otherwise
-    if (n != N || frame[0] != SBUS_HEADER || frame[24] != SBUS_END)
+    if (bytes_available > 2 * int(N))
     {
-      RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame!");
+      // flush the buffer if more than two frames are available
+      if (ioctl(fd, TCFLSH, TCIFLUSH) < 0)
+      {
+        RCLCPP_ERROR_STREAM(get_logger(), "TCFLSH failed: " << strerror(errno));
+      }
+
       return false;
     }
+
+    // reset buffer
+    frame.fill(0xFF);
+
+    // index of current write location in frame buffer
+    ssize_t i = 0;
+
+    while (true)
+    {
+      uint8_t buffer[N];
+      const ssize_t n = ::read(fd, buffer, N - i);
+
+      if (n == -1)
+      {
+        RCLCPP_ERROR_STREAM(get_logger(), "Error reading from serial port: " << strerror(errno));
+        return false;
+      }
+
+      // VMIN = 1, we expect to read at least 1 byte
+      assert(n > 0);
+
+      if (i == 0)
+      {
+        // search header
+        for (ssize_t j = n - 1; j >= 0; j--)
+        {
+          if (buffer[j] == SBUS_HEADER)
+          {
+            // potential header:
+            //  - if [SBUS_END, SBUS_HEADER] -> frame end followed by header
+            //  - if [SBUS_HEADER] -> header or payload byte if at index 0
+            if (j == 0 || (j > 0 && buffer[j - 1] == SBUS_END))
+            {
+              // copy data in range j...n to beginning of frame
+              std::memcpy(frame.data(), &buffer[j], n - j);
+              i = n - j;
+            }
+          }
+        }
+
+        if (i == 0)
+        {
+          // continue searching for header
+          continue;
+        }
+      }
+      else
+      {
+        // continue reading bytes into frame buffer
+        std::memcpy(frame.data() + i, buffer, n);
+        i += n;
+      }
+
+      if (i == N)
+      {
+        // read maximum frame length
+        if (frame[N - 1] == SBUS_END)
+        {
+          // found end byte
+          break;
+        }
+        else
+        {
+          // reset and repeat
+          RCLCPP_WARN_STREAM(get_logger(), "Invalid S.BUS frame: incorrect end byte!");
+          i = 0;
+          continue;
+        }
+      }
+    }
+
+    assert(frame[0] == SBUS_HEADER && frame[24] == SBUS_END);
 
     return true;
   }
@@ -243,6 +318,7 @@ private:
     struct termios2 opt;
     opt.c_cflag = CS8 | CSTOPB | PARENB | CLOCAL | CREAD | BOTHER;
     opt.c_ospeed = 100000;
+    opt.c_cc[VMIN] = 1;
     return opt;
   }();
 
