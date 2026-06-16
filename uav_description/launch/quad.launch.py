@@ -49,6 +49,8 @@ def generate_launch_description():
             '--ros-args',
             '--log-level', 'controller_manager:=warn',
             '--log-level', 'resource_manager:=warn',
+            # '--log-level', 'controller_manager.hardware_component.sensor.imu:=debug',
+            # '--log-level', 'controller_manager.hardware_component.sensor.rc:=debug',
             # '--log-level', 'control_allocation:=debug',
             # '--log-level', 'angular_velocity:=debug',
             # '--log-level', 'angular_position:=debug',
