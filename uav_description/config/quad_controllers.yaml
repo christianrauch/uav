@@ -1,6 +1,7 @@
 controller_manager:
   ros__parameters:
     update_rate: 500
+    thread_priority: 90
 
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
