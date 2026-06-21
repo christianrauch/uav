@@ -36,6 +36,9 @@
   </xacro:macro>
 
   <ros2_control name="imu" type="sensor">
+    <properties>
+      <async thread_priority="90"/>
+    </properties>
     <hardware>
       <plugin>uav/drivers/MPU9250</plugin>
       <param name="sensor_name">base_imu</param>
@@ -47,6 +50,9 @@
   </ros2_control>
 
   <ros2_control name="pwm" type="actuator" is_async="true" rw_rate="400">
+    <properties>
+      <async thread_priority="90"/>
+    </properties>
     <hardware>
       <plugin>uav/drivers/PCA9685</plugin>
       <param name="bus">1</param>
@@ -56,6 +62,9 @@
 
   <!-- FrSky S.BUS frame is transmitted every 9 ms -->
   <ros2_control name="rc" type="sensor" is_async="true" rw_rate="100">
+    <properties>
+      <async thread_priority="90"/>
+    </properties>
     <hardware>
       <plugin>uav/drivers/SBUS</plugin>
       <param name="device">/dev/ttyAMA0</param>
