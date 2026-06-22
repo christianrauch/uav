@@ -131,7 +131,11 @@ private:
     i2c_smbus_write_byte_data(fd, R_USER_CTRL, 0b00100000);  // set I2C_MST_EN to 1
     i2c_smbus_write_byte_data(fd, R_I2C_MST_CTRL, 13);  // set I2C_MST_CLK to 13: 8MHz/20 = 400kHz
 
-    usleep(1000);
+    usleep(10000);  // increased delay for I2C master initialization
+
+    // soft reset AK8963 via SRST bit in CNTL2 register before ID check
+    AK8963_write_reg(R_CNTL2, 0x01);
+    usleep(10000);  // wait for AK8963 to complete reset
 
     // check for AK8963 presence
     const uint8_t AK8963_id = AK8963_read_reg(R_WIA);
