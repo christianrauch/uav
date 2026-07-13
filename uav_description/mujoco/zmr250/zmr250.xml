@@ -1,0 +1,56 @@
+<mujoco model="Blackout Mini H">
+  <default>
+    <default class="rotor">
+      <geom type="cylinder" size="0.07 0.001" rgba="0.5 0.5 0.5 0.3"/>
+    </default>
+    <default class="thrust">
+      <velocity ctrlrange="0 1" kv="10"/>
+    </default>
+  </default>
+
+  <worldbody>
+    <light name="spotlight" mode="targetbodycom" target="zmr250" pos="0 -1 2"/>
+    <body name="zmr250" pos="0 0 0.1">
+      <freejoint/>
+
+      <camera name="track" pos="-1 0 .5" xyaxes="0 -1 0 1 0 2" mode="trackcom"/>
+      <site name="imu" pos="0 0 .02"/>
+
+      <geom name="arm1" type="capsule" fromto="0 0 0 +0.0775 -0.105 0" size="0.008" rgba="1 0 0 1"/>
+      <geom name="arm2" type="capsule" fromto="0 0 0 +0.0775 +0.105 0" size="0.008" rgba="1 0 0 1"/>
+      <geom name="arm3" type="capsule" fromto="0 0 0 -0.0775 +0.105 0" size="0.008" rgba="0.4 0.4 0.4 1"/>
+      <geom name="arm4" type="capsule" fromto="0 0 0 -0.0775 -0.105 0" size="0.008" rgba="0.4 0.4 0.4 1"/>
+
+      <!--Blackout Mini H-->
+
+      <geom name="body" type="box" pos="0 0 0.015" size="0.0925 0.034 0.015" mass="0.6" rgba="0.1 0.1 0.1 1"/>
+      <geom name="front" type="box" pos="0.0925 0 0.015" size="0.012 0.012 0.015" euler="0 0 45" rgba="0 1 0 1"/>
+
+      <geom name="rotor1" class="rotor" pos="+0.0775 -0.105 0"/>
+      <geom name="rotor2" class="rotor" pos="+0.0775 +0.105 0"/>
+      <geom name="rotor3" class="rotor" pos="-0.0775 +0.105 0"/>
+      <geom name="rotor4" class="rotor" pos="-0.0775 -0.105 0"/>
+
+      <site name="thrust1" pos="+0.0775 -0.105 0"/>
+      <site name="thrust2" pos="+0.0775 +0.105 0"/>
+      <site name="thrust3" pos="-0.0775 +0.105 0"/>
+      <site name="thrust4" pos="-0.0775 -0.105 0"/>
+
+    </body>
+  </worldbody>
+
+  <actuator>
+    <velocity name="rotor/1" class="thrust" site="thrust1" gear="0 0 1 0 0 -.0201"/>
+    <velocity name="rotor/2" class="thrust" site="thrust2" gear="0 0 1 0 0  .0201"/>
+    <velocity name="rotor/3" class="thrust" site="thrust3" gear="0 0 1 0 0 -.0201"/>
+    <velocity name="rotor/4" class="thrust" site="thrust4" gear="0 0 1 0 0  .0201"/>
+  </actuator>
+
+  <sensor>
+    <gyro name="body_gyro" site="imu"/>
+    <accelerometer name="body_accel" site="imu"/>
+    <magnetometer name="body_magnetometer" site="imu"/>
+    <framequat name="body_quat" objtype="site" objname="imu"/>
+    <framepos name="body_pos" objtype="site" objname="imu"/>
+  </sensor>
+</mujoco>
