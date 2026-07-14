@@ -29,6 +29,7 @@ target_compile_features(imu_base PUBLIC cxx_std_20)
 
 install(TARGETS imu_base
   EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
 )
 
 add_subdirectory(mpu9250)

@@ -6,4 +6,5 @@ target_link_libraries(imu_mpu9250 PUBLIC
 
 install(TARGETS imu_mpu9250
   EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
 )

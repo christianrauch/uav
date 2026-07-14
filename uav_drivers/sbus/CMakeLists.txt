@@ -6,4 +6,5 @@ target_compile_features(rc_sbus PUBLIC cxx_std_20)
 
 install(TARGETS rc_sbus
   EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
 )
