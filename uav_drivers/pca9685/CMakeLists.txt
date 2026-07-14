@@ -7,4 +7,5 @@ target_compile_features(pwm_pca9685 PUBLIC cxx_std_20)
 
 install(TARGETS pwm_pca9685
   EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
 )

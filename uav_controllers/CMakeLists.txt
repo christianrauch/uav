@@ -180,6 +180,7 @@ install(TARGETS
   fusion_madgwick
   fusion_madgwick_parameters
   EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
 )
 
 ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)

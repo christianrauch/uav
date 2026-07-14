@@ -26,7 +26,8 @@ rclcpp_components_register_node(mode_manager PLUGIN "ModeManager" EXECUTABLE "mo
 
 install(TARGETS mode_manager
   EXPORT export_${PROJECT_NAME}
-  DESTINATION lib
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)

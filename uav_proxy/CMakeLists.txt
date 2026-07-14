@@ -41,6 +41,7 @@ pluginlib_export_plugin_description_file(hardware_interface ${PROJECT_NAME}_plug
 
 install(TARGETS proxy_imu proxy_actuator proxy_rc
   EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
 )
 
 ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
