@@ -1,10 +1,20 @@
 <?xml version="1.0"?>
 <robot name="rotor_link" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="rotor_link" params="id base origin radius">
+  <xacro:macro name="rotor_link" params="id base origin radius mass=0.01">
+    <xacro:property name="width" value="0.001" />
     <link name="rotor/${id}">
+      <inertial>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${(1/4*mass*radius*radius + 1/12*mass*width*width)}"
+          iyy="${(1/4*mass*radius*radius + 1/12*mass*width*width)}"
+          izz="${(1/2*mass*radius*radius)}"
+          ixy="0" ixz="0" iyz="0"
+        />
+      </inertial>
       <visual>
         <geometry>
-          <cylinder radius="${radius}" length="0.001" />
+          <cylinder radius="${radius}" length="${width}" />
         </geometry>
       </visual>
     </link>
