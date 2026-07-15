@@ -10,10 +10,10 @@
   <xacro:property name="H" value="0.155"/>
 
   <!--rotation direction: 1: CCW, 2: CW, 3: CCW, 4: CW-->
-  <xacro:rotor_link id="1" base="base_link" origin="+${H/2} -${W/2} 0" radius="0.07" />
-  <xacro:rotor_link id="2" base="base_link" origin="+${H/2} +${W/2} 0" radius="0.07" />
-  <xacro:rotor_link id="3" base="base_link" origin="-${H/2} +${W/2} 0" radius="0.07" />
-  <xacro:rotor_link id="4" base="base_link" origin="-${H/2} -${W/2} 0" radius="0.07" />
+  <xacro:rotor_link id="1" base="base_link" origin="+${H/2} -${W/2} 0" radius="0.07"/>
+  <xacro:rotor_link id="2" base="base_link" origin="+${H/2} +${W/2} 0" radius="0.07"/>
+  <xacro:rotor_link id="3" base="base_link" origin="-${H/2} +${W/2} 0" radius="0.07"/>
+  <xacro:rotor_link id="4" base="base_link" origin="-${H/2} -${W/2} 0" radius="0.07"/>
 
   <link name="base_imu" />
 
