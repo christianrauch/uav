@@ -1,25 +1,10 @@
 <?xml version="1.0"?>
-<robot name="quad_x" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="quad_x" xmlns:xacro="http://ros.org/wiki/xacro" version="1.1">
 
-  <xacro:include filename="rotor_link.xacro" />
+  <xacro:include filename="zmr250.urdf.xacro" />
 
-  <!--Skydio X2 configuration-->
-  <!--https://github.com/lvjonok/skydio_x2_description-->
+  <xacro:include filename="$(find uav_description)/urdf/ros2_control/proxy.ros2_control.xacro" />
 
-  <link name="base_link" />
-  <xacro:rotor_link id="1" base="base_link" origin="-0.14 -0.18 0.05" radius="0.13" />
-  <xacro:rotor_link id="2" base="base_link" origin="-0.14 +0.18 0.05" radius="0.13" />
-  <xacro:rotor_link id="3" base="base_link" origin="+0.14 +0.18 0.08" radius="0.13" />
-  <xacro:rotor_link id="4" base="base_link" origin="+0.14 -0.18 0.08" radius="0.13" />
+  <xacro:proxy_ros2_control />
 
-  <link name="base_imu" />
-
-  <joint name="base_imu_joint" type="fixed">
-    <parent link="base_link" />
-    <child link="base_imu" />
-  </joint>
-
-  <xacro:include filename="$(find uav_description)/urdf/ros2_control/proxy_interfaces.xacro" />
-
-  <xacro:proxy_interfaces />
 </robot>

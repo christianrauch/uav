@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
-<robot name="proxy" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="proxy_interfaces">
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="proxy_ros2_control">
+
     <xacro:include filename="$(find uav_description)/urdf/interfaces/imu_interface.xacro" />
     <xacro:include filename="$(find uav_description)/urdf/interfaces/rotor_interface.xacro" />
     <xacro:include filename="$(find uav_description)/urdf/interfaces/rc_interface.xacro" />
@@ -33,5 +35,7 @@
       </hardware>
       <xacro:rc />
     </ros2_control>
+
   </xacro:macro>
+
 </robot>
