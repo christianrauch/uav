@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot name="zmr250" xmlns:xacro="http://ros.org/wiki/xacro" version="1.1">
+
+  <!-- orientation of IMU frame -->
+  <xacro:arg name="imu_quat" default="0 0 0 1"/>
+
+  <xacro:include filename="rotor_link.xacro" />
+
+  <link name="base_link" />
+
+  <!--ZMR 250 (Blackout Mini H) frame-->
+  <xacro:property name="W" value="0.210"/>
+  <xacro:property name="H" value="0.155"/>
+
+  <!--rotation direction: 1: CCW, 2: CW, 3: CCW, 4: CW-->
+  <xacro:rotor_link id="1" base="base_link" origin="+${H/2} -${W/2} 0" radius="0.07" />
+  <xacro:rotor_link id="2" base="base_link" origin="+${H/2} +${W/2} 0" radius="0.07" />
+  <xacro:rotor_link id="3" base="base_link" origin="-${H/2} +${W/2} 0" radius="0.07" />
+  <xacro:rotor_link id="4" base="base_link" origin="-${H/2} -${W/2} 0" radius="0.07" />
+
+  <link name="base_imu" />
+
+  <joint name="base_imu_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="base_imu" />
+    <origin quat_xyzw="$(arg imu_quat)" />
+  </joint>
+</robot>
