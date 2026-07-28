@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
-<robot name="rc" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
   <xacro:macro name="rc">
+
     <sensor name="rc">
       <state_interface name="channel/1" />
       <state_interface name="channel/2" />
@@ -12,5 +14,7 @@
       <state_interface name="channel/8" />
       <state_interface name="failsafe" data_type="bool" />
     </sensor>
+
   </xacro:macro>
+
 </robot>
