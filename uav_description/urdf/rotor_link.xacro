@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
-<robot name="rotor_link" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
   <xacro:macro name="rotor_link" params="id base origin radius mass=0.01">
+
     <xacro:property name="width" value="0.001" />
+
     <link name="rotor/${id}">
       <inertial>
         <mass value="${mass}"/>
@@ -25,5 +28,7 @@
       <origin xyz="${origin}" />
       <axis xyz="0 0 1" />
     </joint>
+
   </xacro:macro>
+
 </robot>
