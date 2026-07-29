@@ -12,7 +12,7 @@ def generate_launch_description():
     model_name_arg = DeclareLaunchArgument(
         'model',
         default_value='pifly',
-        choices=['proxy', 'pifly'],
+        choices=['proxy', 'pifly', 'mujoco'],
     )
 
     model_name = LaunchConfiguration('model')

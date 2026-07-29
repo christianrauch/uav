@@ -4,6 +4,9 @@
   <xacro:macro name="imu" params="name">
 
     <sensor name="${name}">
+      <param name="mujoco_type">imu</param>
+      <param name="mujoco_sensor_name">body</param>
+
       <state_interface name="orientation.x" />
       <state_interface name="orientation.y" />
       <state_interface name="orientation.z" />

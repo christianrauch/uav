@@ -12,6 +12,7 @@
 
   <xacro:include filename="$(find uav_description)/urdf/ros2_control/proxy.ros2_control.xacro" />
   <xacro:include filename="$(find uav_description)/urdf/ros2_control/pifly.ros2_control.xacro" />
+  <xacro:include filename="$(find uav_description)/urdf/ros2_control/mujoco.ros2_control.xacro" />
 
   <xacro:if value="${model == 'proxy'}">
     <xacro:proxy_ros2_control />
@@ -19,6 +20,10 @@
 
   <xacro:if value="${model == 'pifly'}">
     <xacro:pifly_ros2_control />
+  </xacro:if>
+
+  <xacro:if value="${model == 'mujoco'}">
+    <xacro:mujoco_ros2_control />
   </xacro:if>
 
 </robot>
