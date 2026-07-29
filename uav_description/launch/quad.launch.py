@@ -1,7 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, TimerAction
 from launch.substitutions import (
-    Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression,
+    Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution,
 )
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -12,17 +12,15 @@ def generate_launch_description():
     model_name_arg = DeclareLaunchArgument(
         'model',
         default_value='pifly',
+        choices=['proxy', 'pifly'],
     )
 
     model_name = LaunchConfiguration('model')
 
-    xacro_filename = PythonExpression([
-        "'", model_name, "' + '.urdf.xacro'"
-    ])
-
     robot_description = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]), ' ',
-        PathJoinSubstitution([FindPackageShare('uav_description'), 'urdf', xacro_filename,]),
+        PathJoinSubstitution([FindPackageShare('uav_description'), 'urdf', 'quad.urdf.xacro',]),
+        ' model:=', model_name,
     ])
 
     robot_controllers = PathJoinSubstitution([
