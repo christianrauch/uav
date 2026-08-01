@@ -6,6 +6,7 @@
     <xacro:include filename="$(find uav_description)/urdf/interfaces/imu_interface.xacro" />
     <xacro:include filename="$(find uav_description)/urdf/interfaces/rotor_interface.xacro" />
     <xacro:include filename="$(find uav_description)/urdf/interfaces/rc_interface.xacro" />
+    <xacro:include filename="$(find uav_description)/urdf/interfaces/pose_interface.xacro" />
 
     <xacro:macro name="rotors">
       <xacro:rotor id="1" />
@@ -21,6 +22,7 @@
         <param name="headless">false</param>
       </hardware>
       <xacro:imu name="base_imu" />
+      <xacro:pose name="zmr250" />
       <xacro:rotors />
     </ros2_control>
 

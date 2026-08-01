@@ -18,6 +18,9 @@ controller_manager:
     fusion_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    pose_broadcaster:
+      type: pose_broadcaster/PoseBroadcaster
+
     rotor_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
@@ -78,6 +81,11 @@ fusion_sensor_broadcaster:
   ros__parameters:
     frame_id: base_link
     sensor_name: fusion
+
+pose_broadcaster:
+  ros__parameters:
+    pose_name: zmr250
+    frame_id: world
 
 rotor_state_broadcaster:
   ros__parameters:
