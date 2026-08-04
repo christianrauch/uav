@@ -4,6 +4,9 @@
   <xacro:macro name="magnetometer" params="name">
 
     <sensor name="${name}">
+      <param name="mujoco_type">magnetometer</param>
+      <param name="mujoco_sensor_name">body_magnetometer</param>
+
       <state_interface name="magnetic_field.x"/>
       <state_interface name="magnetic_field.y"/>
       <state_interface name="magnetic_field.z"/>
