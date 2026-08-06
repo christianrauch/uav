@@ -9,9 +9,10 @@
   </default>
 
   <worldbody>
-    <light name="spotlight" mode="targetbodycom" target="zmr250" pos="0 -1 2"/>
     <body name="zmr250" pos="0 0 0.01">
       <freejoint/>
+
+      <light name="overhead" pos="0 0 5" dir="0 0 -1"/>
 
       <!--Blackout Mini H-->
 
