@@ -35,14 +35,10 @@ uav::controllers::angular_velocity:
     i_min:
       type: double
       default_value: -.inf
-      validation:
-        lt_eq<>: 0
       description: "lower bound for clamping the integral term"
     i_max:
       type: double
       default_value: .inf
-      validation:
-        gt_eq<>: 0
       description: "upper bound for clamping the integral term"
     tracking_time_constant:
       type: double
