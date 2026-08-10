@@ -64,6 +64,7 @@ def generate_launch_description():
             '--param-file', robot_controllers,
             '--activate-as-group',
             'imu_sensor_broadcaster',
+            'magnetometer_broadcaster',
             'fusion',
             'fusion_sensor_broadcaster',
             'rotor_state_broadcaster',
