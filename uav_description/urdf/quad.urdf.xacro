@@ -26,4 +26,15 @@
     <xacro:mujoco_ros2_control />
   </xacro:if>
 
+  <ros2_control name="battery" type="system">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+    </hardware>
+    <sensor name="battery_state">
+      <state_interface name="voltage">
+        <param name="initial_value">11.1</param>
+      </state_interface>
+    </sensor>
+  </ros2_control>
+
 </robot>
