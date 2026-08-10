@@ -4,6 +4,7 @@
   <xacro:macro name="proxy_ros2_control">
 
     <xacro:include filename="$(find uav_description)/urdf/interfaces/imu_interface.xacro" />
+    <xacro:include filename="$(find uav_description)/urdf/interfaces/magnetometer_interface.xacro" />
     <xacro:include filename="$(find uav_description)/urdf/interfaces/rotor_interface.xacro" />
     <xacro:include filename="$(find uav_description)/urdf/interfaces/rc_interface.xacro" />
 
@@ -20,6 +21,14 @@
         <param name="sensor_name">base_imu</param>
       </hardware>
       <xacro:imu name="base_imu" />
+    </ros2_control>
+
+    <ros2_control name="proxy_magnetometer" type="sensor">
+      <hardware>
+        <plugin>uav/proxy/Magnetometer</plugin>
+        <param name="sensor_name">base_imu</param>
+      </hardware>
+      <xacro:magnetometer name="base_imu" />
     </ros2_control>
 
     <ros2_control name="proxy_actuator" type="actuator">

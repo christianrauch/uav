@@ -8,6 +8,16 @@
   </class>
 </library>
 
+<library path="proxy_magnetometer">
+  <class name="uav/proxy/Magnetometer"
+         type="uav::proxy::ProxyMagnetometer"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      proxy interface to a magnetometer
+    </description>
+  </class>
+</library>
+
 <library path="proxy_actuator">
   <class name="uav/proxy/Actuator"
          type="uav::proxy::ProxyActuator"
