@@ -46,11 +46,13 @@ controller_manager:
 
 imu_sensor_broadcaster:
   ros__parameters:
+    update_rate: 100
     frame_id: imu
     sensor_name: base_imu
 
 magnetometer_broadcaster:
   ros__parameters:
+    update_rate: 100
     frame_id: imu
     sensor_name: base_imu
 
@@ -76,11 +78,13 @@ fusion:
 
 fusion_sensor_broadcaster:
   ros__parameters:
+    update_rate: 100
     frame_id: base_link
     sensor_name: fusion
 
 rotor_state_broadcaster:
   ros__parameters:
+    update_rate: 100
     joints: [rotor/1, rotor/2, rotor/3, rotor/4]
     interfaces: ["position", "velocity"]
 
