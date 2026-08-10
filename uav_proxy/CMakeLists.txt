@@ -23,6 +23,12 @@ target_link_libraries(proxy_imu PUBLIC
   ${sensor_msgs_TARGETS}
 )
 
+add_library(proxy_magnetometer SHARED src/proxy_magnetometer.cpp)
+target_link_libraries(proxy_magnetometer PUBLIC
+  hardware_interface::hardware_interface
+  ${sensor_msgs_TARGETS}
+)
+
 add_library(proxy_actuator SHARED src/proxy_actuator.cpp)
 target_link_libraries(proxy_actuator PUBLIC
   hardware_interface::hardware_interface
@@ -39,7 +45,7 @@ target_link_libraries(proxy_rc PUBLIC
 
 pluginlib_export_plugin_description_file(hardware_interface ${PROJECT_NAME}_plugin.xml)
 
-install(TARGETS proxy_imu proxy_actuator proxy_rc
+install(TARGETS proxy_imu proxy_magnetometer proxy_actuator proxy_rc
   EXPORT ${PROJECT_NAME}Targets
   LIBRARY DESTINATION lib
 )
