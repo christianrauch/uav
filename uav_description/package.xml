@@ -16,6 +16,7 @@
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>state_interfaces_broadcaster</exec_depend>
   <exec_depend>magnetometer_broadcaster</exec_depend>
+  <exec_depend>pose_broadcaster</exec_depend>
   <exec_depend>uav_proxy</exec_depend>
   <exec_depend>uav_drivers</exec_depend>
   <exec_depend>uav_controllers</exec_depend>

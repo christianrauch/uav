@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="pose" params="name">
+
+      <sensor name="${name}">
+        <param name="mujoco_type">pose</param>
+        <param name="mujoco_sensor_name">body</param>
+
+        <state_interface name="position.x" />
+        <state_interface name="position.y" />
+        <state_interface name="position.z" />
+        <state_interface name="orientation.x" />
+        <state_interface name="orientation.y" />
+        <state_interface name="orientation.z" />
+        <state_interface name="orientation.w" />
+      </sensor>
+
+  </xacro:macro>
+
+</robot>
