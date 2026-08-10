@@ -1,0 +1,11 @@
+command_interfaces_broadcaster:
+  controller_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+  command_interfaces:
+    type: string_array
+    read_only: true
+    validation:
+      not_empty<>: null
