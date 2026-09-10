@@ -29,6 +29,7 @@ public:
   }
 
   std::vector<hardware_interface::CommandInterface::SharedPtr> on_export_reference_interfaces_list()
+    override
   {
     std::vector<hardware_interface::CommandInterface::SharedPtr> reference_interfaces;
 
