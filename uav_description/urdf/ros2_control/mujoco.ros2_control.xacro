@@ -20,7 +20,7 @@
       <hardware>
         <plugin>mujoco_ros2_control/MujocoSystemInterface</plugin>
         <param name="mujoco_model">$(find uav_description)/mujoco/zmr250/scene.xml</param>
-        <param name="headless">true</param>
+        <param name="headless">false</param>
       </hardware>
       <xacro:imu name="base_imu" />
       <xacro:magnetometer name="base_imu" />
