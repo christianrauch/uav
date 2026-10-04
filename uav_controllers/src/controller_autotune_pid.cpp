@@ -1,4 +1,5 @@
 #include <Eigen/Geometry>
+#include <algorithm>
 #include <cmath>
 #include <format>
 #include <memory>
@@ -25,6 +26,7 @@ namespace autotune
 enum class State : uint8_t
 {
   IDLE = 0,
+  CLIMB,
   STABILIZE_PRE,
   TUNE_ROLL,
   STABILIZE_BETWEEN_1,
@@ -176,6 +178,13 @@ public:
       interface_names.push_back("rc/channel/" + std::to_string(channel_id));
     }
 
+    if (!pose_sensor_name.empty())
+    {
+      interface_names.push_back(pose_sensor_name + "/position.x");
+      interface_names.push_back(pose_sensor_name + "/position.y");
+      interface_names.push_back(pose_sensor_name + "/position.z");
+    }
+
     return {controller_interface::interface_configuration_type::INDIVIDUAL, interface_names};
   }
 
@@ -192,7 +201,7 @@ public:
         std::lock_guard<std::mutex> lock(mutex_state);
         start_autotune_sequence();
         resp->success = true;
-        resp->message = "Autotuning sequence started.";
+        resp->message = "Autotuning sequence started (climbing to safe altitude).";
       });
 
     srv_stop = get_node()->create_service<std_srvs::srv::Trigger>(
@@ -233,6 +242,7 @@ public:
     velocity_controller_name = params.velocity_controller_name;
     mixer_name = params.mixer;
     sensor_name = params.sensor_name;
+    pose_sensor_name = params.pose_sensor_name;
     rpyt_channels = params.rpyt_channels;
 
     param_client =
@@ -247,6 +257,10 @@ public:
     std::lock_guard<std::mutex> lock(mutex_state);
     current_state = State::IDLE;
     state_timer = 0.0;
+    climb_settle_timer = 0.0;
+    integral_z = 0.0;
+    filtered_vz = 0.0;
+    prev_pos_z_valid = false;
     rls_roll.reset();
     rls_pitch.reset();
     rls_yaw.reset();
@@ -291,6 +305,19 @@ public:
     const double rc_yaw_raw = -scale_rpy(state_interfaces_[9]);
     const double rc_thrust = scale_t(state_interfaces_[10]);
 
+    // Position Z (Altitude)
+    const double pos_z =
+      (state_interfaces_.size() > 13) ? state_interfaces_[13].get_optional().value_or(nan) : nan;
+    const bool has_position = !std::isnan(pos_z);
+
+    if (has_position)
+    {
+      const double vz = (prev_pos_z_valid && dt > 0.0) ? (pos_z - prev_pos_z) / dt : 0.0;
+      filtered_vz = 0.8 * filtered_vz + 0.2 * vz;
+      prev_pos_z = pos_z;
+      prev_pos_z_valid = true;
+    }
+
     const double max_tilt_rad = params.max_tilt * std::numbers::pi / 180.0;
     const double target_roll = rc_roll_raw * max_tilt_rad;
     const double target_pitch = rc_pitch_raw * max_tilt_rad;
@@ -307,7 +334,7 @@ public:
       if (current_state != State::IDLE)
       {
         RCLCPP_WARN_STREAM(
-          get_node()->get_logger(), "Autotune paused/reset due to safety limit (tilt: "
+          get_node()->get_logger(), "Autotune reset to IDLE due to safety threshold (tilt: "
                                       << tilt_exceeded << ", rate: " << rate_exceeded
                                       << ", stick: " << stick_override << ")");
         current_state = State::IDLE;
@@ -325,6 +352,26 @@ public:
       params.attitude_gains.pitch_p * pitch_err + params.attitude_gains.pitch_d * wy;
     double cmd_yaw_rate = params.attitude_gains.yaw_p * yaw_rate_err;
 
+    // Altitude & Thrust Control
+    double base_thrust = rc_thrust;
+    if (has_position)
+    {
+      const double target_alt = params.target_altitude;
+      const double ez = target_alt - pos_z;
+
+      if (current_state != State::IDLE)
+      {
+        integral_z = std::clamp(integral_z + ez * dt, -0.2, 0.2);
+        base_thrust = params.hover_thrust + params.altitude_gains.p * ez -
+                      params.altitude_gains.d * filtered_vz + params.altitude_gains.i * integral_z;
+        base_thrust = std::clamp(base_thrust, 0.15, 0.95);
+      }
+    }
+
+    // Tilt compensation for thrust
+    const double cos_tilt = std::max(0.6, std::cos(roll_state) * std::cos(pitch_state));
+    const double cmd_thrust = std::clamp(base_thrust / cos_tilt, 0.0, 1.0);
+
     // State machine for autotuning excitation
     double excitation = 0.0;
     state_timer += dt;
@@ -332,8 +379,42 @@ public:
     switch (current_state)
     {
       case State::IDLE:
-        // Closed loop baseline attitude control
         break;
+
+      case State::CLIMB:
+      {
+        // Raise to safe target altitude first
+        if (has_position)
+        {
+          const double alt_err = std::abs(params.target_altitude - pos_z);
+          if (alt_err < 0.15 && std::abs(filtered_vz) < 0.2)
+          {
+            climb_settle_timer += dt;
+            if (climb_settle_timer >= 1.0)
+            {
+              state_timer = 0.0;
+              current_state = State::STABILIZE_PRE;
+              RCLCPP_INFO_STREAM(
+                get_node()->get_logger(),
+                "Safe altitude reached (" << pos_z << " m). Pre-stabilizing...");
+            }
+          }
+          else
+          {
+            climb_settle_timer = 0.0;
+          }
+        }
+        else
+        {
+          // Fallback if no pose sensor
+          if (state_timer >= 2.0)
+          {
+            state_timer = 0.0;
+            current_state = State::STABILIZE_PRE;
+          }
+        }
+        break;
+      }
 
       case State::STABILIZE_PRE:
         if (state_timer >= params.excitation.settle_time)
@@ -446,14 +527,14 @@ public:
     last_cmd_rate = {cmd_roll_rate, cmd_pitch_rate, cmd_yaw_rate};
 
     // Publish status periodically
-    publish_status_telemetry();
+    publish_status_telemetry(pos_z);
 
     // Write commands to hardware
     bool status_ok = true;
     status_ok &= command_interfaces_[0].set_value(cmd_roll_rate);
     status_ok &= command_interfaces_[1].set_value(cmd_pitch_rate);
     status_ok &= command_interfaces_[2].set_value(cmd_yaw_rate);
-    status_ok &= command_interfaces_[3].set_value(rc_thrust);
+    status_ok &= command_interfaces_[3].set_value(cmd_thrust);
 
     return controller_interface::return_type(!status_ok);
   }
@@ -485,12 +566,16 @@ private:
 
   void start_autotune_sequence()
   {
-    current_state = State::STABILIZE_PRE;
+    current_state = State::CLIMB;
     state_timer = 0.0;
+    climb_settle_timer = 0.0;
+    integral_z = 0.0;
     gains_roll.valid = false;
     gains_pitch.valid = false;
     gains_yaw.valid = false;
-    RCLCPP_INFO(get_node()->get_logger(), "Initiating autotune pre-stabilization...");
+    RCLCPP_INFO(
+      get_node()->get_logger(),
+      "Initiating autotune: climbing to target altitude before tuning...");
   }
 
   void identify_axis_gains(
@@ -583,7 +668,7 @@ private:
     return true;
   }
 
-  void publish_status_telemetry()
+  void publish_status_telemetry(double altitude)
   {
     if (pub_rt_status)
     {
@@ -592,6 +677,9 @@ private:
       {
         case State::IDLE:
           status_str += "IDLE";
+          break;
+        case State::CLIMB:
+          status_str += "CLIMB";
           break;
         case State::STABILIZE_PRE:
           status_str += "STABILIZE_PRE";
@@ -615,6 +703,12 @@ private:
           status_str += "COMPLETE";
           break;
       }
+
+      if (!std::isnan(altitude))
+      {
+        status_str += std::format(" | Alt: {:.2f}m", altitude);
+      }
+
       if (gains_roll.valid)
       {
         status_str += std::format(
@@ -644,6 +738,7 @@ private:
   std::string velocity_controller_name;
   std::string mixer_name;
   std::string sensor_name;
+  std::string pose_sensor_name;
   std::vector<int64_t> rpyt_channels;
 
   std::shared_ptr<ParamListener> param_listener;
@@ -659,6 +754,12 @@ private:
   std::mutex mutex_state;
   State current_state = State::IDLE;
   double state_timer = 0.0;
+  double climb_settle_timer = 0.0;
+
+  double integral_z = 0.0;
+  double prev_pos_z = 0.0;
+  bool prev_pos_z_valid = false;
+  double filtered_vz = 0.0;
 
   RLSEstimator rls_roll;
   RLSEstimator rls_pitch;

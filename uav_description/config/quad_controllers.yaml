@@ -163,6 +163,13 @@ autotune:
     velocity_controller_name: angular_velocity
     mixer: control_allocation
     sensor_name: fusion
+    pose_sensor_name: zmr250
+    target_altitude: 1.2
+    hover_thrust: 0.56
+    altitude_gains:
+      p: 0.8
+      i: 0.15
+      d: 0.4
     rpyt_channels: [2, 3, 4, 1]
     max_tilt: 35.0
     auto_apply: true
@@ -186,3 +193,4 @@ autotune:
       pitch_p: 2.0
       pitch_d: 0.01
       yaw_p: 0.4
+

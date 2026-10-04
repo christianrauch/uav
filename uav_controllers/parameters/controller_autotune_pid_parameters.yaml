@@ -26,6 +26,46 @@ uav::controllers::autotune:
     description:
       "Name of controller exporting 'orientation' and 'angular_velocity' state interfaces."
 
+  pose_sensor_name:
+    type: string
+    default_value: "zmr250"
+    read_only: true
+    description:
+      "Name of the sensor exporting position state interfaces (e.g. zmr250/position.z)."
+
+  target_altitude:
+    type: double
+    default_value: 1.2
+    validation:
+      gt<>: 0.1
+    description:
+      "Target altitude in meters to climb to and maintain during autotune."
+
+  hover_thrust:
+    type: double
+    default_value: 0.56
+    validation:
+      bounds<>: [0.1, 0.9]
+    description:
+      "Estimated baseline hover throttle."
+
+  altitude_gains:
+    p:
+      type: double
+      default_value: 0.8
+      validation:
+        gt_eq<>: 0.0
+    i:
+      type: double
+      default_value: 0.15
+      validation:
+        gt_eq<>: 0.0
+    d:
+      type: double
+      default_value: 0.4
+      validation:
+        gt_eq<>: 0.0
+
   rpyt_channels:
     type: int_array
     default_value: [2, 3, 4, 1]
