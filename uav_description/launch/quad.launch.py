@@ -83,6 +83,7 @@ def generate_launch_description():
             'angular_velocity',
             'attitude',
             'attitude_mode',
+            'autotune',
         ],
     )
 
@@ -94,10 +95,13 @@ def generate_launch_description():
         additional_env={'RCUTILS_COLORIZED_OUTPUT': '1'},
         parameters=[
             {'mode_channel_id': 6},
-            {'modes': ['none', 'attitude', '']},
+            {'modes': ['none', 'attitude', 'autotune']},
             {'mode_controllers': {
                 'attitude': [
                     'control_allocation', 'angular_velocity', 'attitude', 'attitude_mode',
+                ],
+                'autotune': [
+                    'control_allocation', 'angular_velocity', 'autotune',
                 ],
             }},
         ],

@@ -42,6 +42,9 @@ controller_manager:
     attitude_mode:
       type: uav/mode/AttitudeFlightMode
 
+    autotune:
+      type: uav/controllers/AutotunePID
+
 # Note:
 # The raw IMU and magnetometer data is published in the sensor frame
 # and intended for calibration. The calibrated and rotated data is
@@ -154,3 +157,32 @@ attitude_mode:
     mixer: control_allocation
     rpyt_channels: [2, 3, 4, 1]
     max_tilt: 45.
+
+autotune:
+  ros__parameters:
+    velocity_controller_name: angular_velocity
+    mixer: control_allocation
+    sensor_name: fusion
+    rpyt_channels: [2, 3, 4, 1]
+    max_tilt: 35.0
+    auto_apply: true
+    loop_delay: 0.006
+    excitation:
+      amplitude_roll: 0.25
+      amplitude_pitch: 0.25
+      amplitude_yaw: 0.4
+      freq_min: 1.5
+      freq_max: 12.0
+      duration: 4.0
+      settle_time: 1.5
+    tuning_rules:
+      kp_factor: 0.2
+      ki_factor: 0.4
+      kd_factor: 0.0666666666667
+      yaw_p_factor: 0.4
+    attitude_gains:
+      roll_p: 2.0
+      roll_d: 0.01
+      pitch_p: 2.0
+      pitch_d: 0.01
+      yaw_p: 0.4

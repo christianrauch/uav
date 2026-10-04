@@ -81,3 +81,15 @@
     </description>
   </class>
 </library>
+
+<library path="controller_autotune_pid">
+  <class
+    name="uav/controllers/AutotunePID"
+    type="uav::controllers::autotune::AutotunePID"
+    base_class_type="controller_interface::ControllerInterface"
+  >
+    <description>
+      PID autotuner identifying rate dynamics and calculating optimal PID gains
+    </description>
+  </class>
+</library>

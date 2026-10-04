@@ -1,0 +1,155 @@
+uav::controllers::autotune:
+  velocity_controller_name:
+    type: string
+    default_value: "angular_velocity"
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of the velocity controller exporting 'angular_velocity' command interfaces."
+
+  mixer:
+    type: string
+    default_value: "control_allocation"
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the 'thrust' command interface."
+
+  sensor_name:
+    type: string
+    default_value: "fusion"
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller exporting 'orientation' and 'angular_velocity' state interfaces."
+
+  rpyt_channels:
+    type: int_array
+    default_value: [2, 3, 4, 1]
+    read_only: true
+    validation:
+      fixed_size<>: 4
+    description:
+      "RC channel IDs for roll, pitch, yaw, and throttle in that order."
+
+  max_tilt:
+    type: double
+    default_value: 35.0
+    validation:
+      bounds<>: [5.0, 85.0]
+    description:
+      "Maximum tilt angle in degrees for safety clamping."
+
+  auto_apply:
+    type: bool
+    default_value: true
+    description:
+      "Automatically apply identified PID gains to angular_velocity controller parameters upon completion."
+
+  loop_delay:
+    type: double
+    default_value: 0.006
+    validation:
+      gt<>: 0.0
+    description:
+      "Estimated closed-loop time delay in seconds for frequency response margin computation."
+
+  excitation:
+    amplitude_roll:
+      type: double
+      default_value: 0.25
+      validation:
+        gt<>: 0.0
+      description: "Excitation rate amplitude for roll axis [rad/s]"
+    amplitude_pitch:
+      type: double
+      default_value: 0.25
+      validation:
+        gt<>: 0.0
+      description: "Excitation rate amplitude for pitch axis [rad/s]"
+    amplitude_yaw:
+      type: double
+      default_value: 0.4
+      validation:
+        gt<>: 0.0
+      description: "Excitation rate amplitude for yaw axis [rad/s]"
+    freq_min:
+      type: double
+      default_value: 1.5
+      validation:
+        gt<>: 0.0
+      description: "Minimum chirp frequency [Hz]"
+    freq_max:
+      type: double
+      default_value: 12.0
+      validation:
+        gt<>: 0.0
+      description: "Maximum chirp frequency [Hz]"
+    duration:
+      type: double
+      default_value: 4.0
+      validation:
+        gt<>: 0.0
+      description: "Excitation duration per axis in seconds"
+    settle_time:
+      type: double
+      default_value: 1.5
+      validation:
+        gt_eq<>: 0.0
+      description: "Stabilization settle time between axes in seconds"
+
+  tuning_rules:
+    kp_factor:
+      type: double
+      default_value: 0.2
+      validation:
+        gt<>: 0.0
+      description: "Kp factor relative to ultimate gain Ku"
+    ki_factor:
+      type: double
+      default_value: 0.4
+      validation:
+        gt_eq<>: 0.0
+      description: "Ki factor relative to Ku / Tu"
+    kd_factor:
+      type: double
+      default_value: 0.0666666666667
+      validation:
+        gt_eq<>: 0.0
+      description: "Kd factor relative to Ku * Tu (6/90 = 0.0667)"
+    yaw_p_factor:
+      type: double
+      default_value: 0.4
+      validation:
+        gt<>: 0.0
+      description: "Yaw Kp factor relative to Ku"
+
+  attitude_gains:
+    roll_p:
+      type: double
+      default_value: 2.0
+      validation:
+        gt_eq<>: 0.0
+    roll_d:
+      type: double
+      default_value: 0.01
+      validation:
+        gt_eq<>: 0.0
+    pitch_p:
+      type: double
+      default_value: 2.0
+      validation:
+        gt_eq<>: 0.0
+    pitch_d:
+      type: double
+      default_value: 0.01
+      validation:
+        gt_eq<>: 0.0
+    yaw_p:
+      type: double
+      default_value: 0.4
+      validation:
+        gt_eq<>: 0.0
