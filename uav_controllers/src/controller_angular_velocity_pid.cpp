@@ -145,6 +145,8 @@ public:
       pid_controller.reset();
     }
 
+    state_prev.fill(nan);
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -170,10 +172,23 @@ public:
     std::array<double, n> cmds;
     for (size_t i = 0; i < pid_controllers.size(); i++)
     {
+      // w_cur
       const double state = state_interfaces_[i].get_optional().value_or(nan);
+      // w_ref
       const double reference_value =
         ordered_exported_reference_interfaces_[i]->get_optional().value_or(0);
-      cmds[i] = pid_controllers[i].compute_command(reference_value - state, period);
+      // e = (w_ref - w_cur)
+      const double error = reference_value - state;
+      // de/dt = ((w_ref - w_cur) - (w_ref_prev - w_prev)) / dt
+      //       = ((w_ref - w_ref_prev) - (w_cur - w_prev)) / dt
+      // To avoid "derivative kick" when the reference value changes abruptly,
+      // we are setting its derivative (w_ref - w_ref_prev)/dt = 0,
+      // resulting in de/dt = - (w_cur - w_prev)) / dt.
+      const double error_dot =
+        std::isfinite(state_prev[i]) ? -(state - state_prev[i]) / period.seconds() : 0;
+      cmds[i] = pid_controllers[i].compute_command(error, error_dot, period);
+      // w_prev
+      state_prev[i] = state;
       RCLCPP_DEBUG_STREAM(
         get_node()->get_logger(), std::fixed << std::setprecision(2) << command_interfaces[i]
                                              << ": " << reference_value << " <> " << state << " -> "
@@ -220,6 +235,7 @@ private:
 
   static constexpr int8_t n = 3;
   std::array<control_toolbox::Pid, n> pid_controllers;
+  std::array<double, n> state_prev;
 
   static constexpr std::array<std::string_view, 3> reference_interface_names = {
     "angular_velocity.x",
