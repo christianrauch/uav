@@ -106,9 +106,14 @@ private:
 
     // calculate mode index based on channel value in range [0, 1]
     const double mode_channel_value = msg->values.at(mode_channel_index);
+    if (!std::isfinite(mode_channel_value))
+    {
+      mtx_mode_switch.unlock();
+      return;
+    }
     const size_t n_modes = mode_names.size();
     const size_t new_mode_index = std::clamp<size_t>(mode_channel_value * n_modes, 0, n_modes - 1);
-    next_mode = mode_names[new_mode_index];
+    next_mode = mode_names.at(new_mode_index);
 
     if (next_mode == current_mode)
     {
