@@ -165,12 +165,13 @@ private:
     request->strictness = controller_manager_msgs::srv::SwitchController::Request::STRICT;
     request->activate_asap = true;
 
-    // set of new controllers to activate, which are not yet active and should be activated
-    std::set_intersection(
+    // set of controllers that should be active after the transition,
+    // excluding controllers that are currently already active
+    std::set_difference(
       //
       new_controllers.begin(), new_controllers.end(),
       //
-      managed_controllers_notactive.begin(), managed_controllers_notactive.end(),
+      managed_controllers_active.begin(), managed_controllers_active.end(),
       //
       std::back_inserter(request->activate_controllers));
 
@@ -215,9 +216,10 @@ private:
         }
         else
         {
-          RCLCPP_ERROR_STREAM(
-            this->get_logger(), "Failed to switch from '" << current_mode << "' to '" << next_mode
-                                                          << "': " << response->message);
+          RCLCPP_ERROR_STREAM_THROTTLE(
+            this->get_logger(), *(this->get_clock()), 1000,
+            "Failed to switch from '" << current_mode << "' to '" << next_mode
+                                      << "': " << response->message);
         }
         mtx_mode_switch.unlock();
       });
