@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import (
     Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution,
 )
@@ -107,16 +107,11 @@ def generate_launch_description():
         ],
     )
 
-    delayed_mode_manager = TimerAction(
-        period=2.0,
-        actions=[mode_manager_node],
-    )
-
     return LaunchDescription([
         model_name_arg,
         robot_state_publisher_node,
         ros2_control_node,
         controller_spawner,
         controller_spawner_inactive,
-        delayed_mode_manager,
+        mode_manager_node,
     ])
