@@ -181,6 +181,12 @@ public:
     mutex_param_gains.lock();
 
     // attitude PD-control for roll and pitch
+    // The derivative of the position (a) error is related to the velocity (w):
+    // de/dt = (a_ref - a_cur) / dt - (a_ref_prev - a_prev) / dt
+    //       = (a_ref - a_ref_prev) / dt - (a_cur - a_prev) / dt
+    //       = w_ref - w
+    // Since the angular velocity is controlled by a downstream controller,
+    // we set w_ref = 0, hence de/dt = - w.
     cmds[0] = gain_roll_p * roll_err + gain_roll_d * -wx;
     cmds[1] = gain_pitch_p * pitch_err + gain_pitch_d * -wy;
     // yaw rate P-control
