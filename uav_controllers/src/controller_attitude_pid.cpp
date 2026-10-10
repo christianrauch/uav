@@ -67,15 +67,16 @@ public:
     param_listener->setUserCallback(
       [this](const Params & params)
       {
-        mutex_param_gains.lock();
-        gain_roll_p = params.gains.roll.p;
-        gain_roll_i = params.gains.roll.i;
-        gain_roll_d = params.gains.roll.d;
-        gain_pitch_p = params.gains.pitch.p;
-        gain_pitch_i = params.gains.pitch.i;
-        gain_pitch_d = params.gains.pitch.d;
-        gain_yaw_p = params.gains.yaw_rate.p;
-        mutex_param_gains.unlock();
+        Gains gains;
+        gains.roll_p = params.gains.roll.p;
+        gains.roll_i = params.gains.roll.i;
+        gains.roll_d = params.gains.roll.d;
+        gains.pitch_p = params.gains.pitch.p;
+        gains.pitch_i = params.gains.pitch.i;
+        gains.pitch_d = params.gains.pitch.d;
+        gains.yaw_p = params.gains.yaw_rate.p;
+
+        gains_box.set(gains);
       });
 
     sub_reference = get_node()->create_subscription<geometry_msgs::msg::Vector3>(
@@ -102,15 +103,17 @@ public:
           pub_pids[i]);
     }
 
-    mutex_param_gains.lock();
-    gain_roll_p = params.gains.roll.p;
-    gain_roll_i = params.gains.roll.i;
-    gain_roll_d = params.gains.roll.d;
-    gain_pitch_p = params.gains.pitch.p;
-    gain_pitch_i = params.gains.pitch.i;
-    gain_pitch_d = params.gains.pitch.d;
-    gain_yaw_p = params.gains.yaw_rate.p;
-    mutex_param_gains.unlock();
+    Gains gains;
+    gains.roll_p = params.gains.roll.p;
+    gains.roll_i = params.gains.roll.i;
+    gains.roll_d = params.gains.roll.d;
+    gains.pitch_p = params.gains.pitch.p;
+    gains.pitch_i = params.gains.pitch.i;
+    gains.pitch_d = params.gains.pitch.d;
+    gains.yaw_p = params.gains.yaw_rate.p;
+
+    gains_rt = gains;
+    gains_box.set(gains);
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -141,6 +144,13 @@ public:
   controller_interface::return_type update_and_write_commands(
     const rclcpp::Time & time, const rclcpp::Duration & period) override
   {
+    if (const std::optional<Gains> gains = gains_box.try_get())
+    {
+      gains_rt = *gains;
+    }
+
+    const Gains & gains = gains_rt;
+
     // orientation [quat]
     const Eigen::Quaterniond q_state{
       state_interfaces_[3].get_optional().value_or(nan),  // w
@@ -187,8 +197,6 @@ public:
 
     std::array<double, n> cmds;
 
-    mutex_param_gains.lock();
-
     // attitude PD-control for roll and pitch
     // The derivative of the position (a) error is related to the velocity (w):
     // de/dt = (a_ref - a_cur) / dt - (a_ref_prev - a_prev) / dt
@@ -198,32 +206,32 @@ public:
     // we set w_ref = 0, hence de/dt = - w.
 
     // terms
-    const double p_roll = gain_roll_p * roll_err;
-    const double p_pitch = gain_pitch_p * pitch_err;
-    const double d_roll = gain_roll_d * -wx;
-    const double d_pitch = gain_pitch_d * -wy;
+    const double p_roll = gains.roll_p * roll_err;
+    const double p_pitch = gains.pitch_p * pitch_err;
+    const double d_roll = gains.roll_d * -wx;
+    const double d_pitch = gains.pitch_d * -wy;
 
     integral_errors[0] += roll_err * period.seconds();
     integral_errors[1] += pitch_err * period.seconds();
 
-    const double i_roll = gain_roll_i * integral_errors[0];
-    const double i_pitch = gain_pitch_i * integral_errors[1];
+    const double i_roll = gains.roll_i * integral_errors[0];
+    const double i_pitch = gains.pitch_i * integral_errors[1];
 
     // attitude PID control
     cmds[0] = p_roll + i_roll + d_roll;
     cmds[1] = p_pitch + i_pitch + d_pitch;
 
     // yaw rate P-control
-    cmds[2] = gain_yaw_p * yaw_rate_err;
+    cmds[2] = gains.yaw_p * yaw_rate_err;
 
     // P gains
-    msg[0].p_gain = gain_roll_p;
-    msg[1].p_gain = gain_pitch_p;
-    msg[2].p_gain = gain_yaw_p;
+    msg[0].p_gain = gains.roll_p;
+    msg[1].p_gain = gains.pitch_p;
+    msg[2].p_gain = gains.yaw_p;
 
     // I gains
-    msg[0].i_gain = gain_roll_i;
-    msg[1].i_gain = gain_pitch_i;
+    msg[0].i_gain = gains.roll_i;
+    msg[1].i_gain = gains.pitch_i;
     msg[2].i_gain = 0;
 
     msg[0].i_term = i_roll;
@@ -231,11 +239,9 @@ public:
     msg[2].i_term = 0;
 
     // D gains
-    msg[0].d_gain = gain_roll_d;
-    msg[1].d_gain = gain_pitch_d;
+    msg[0].d_gain = gains.roll_d;
+    msg[1].d_gain = gains.pitch_d;
     msg[2].d_gain = 0;
-
-    mutex_param_gains.unlock();
 
     bool status_ok = true;
 
@@ -266,6 +272,17 @@ public:
   }
 
 private:
+  struct Gains
+  {
+    double roll_p = 0;
+    double roll_i = 0;
+    double roll_d = 0;
+    double pitch_p = 0;
+    double pitch_i = 0;
+    double pitch_d = 0;
+    double yaw_p = 0;
+  };
+
   template <typename T>
   static T clamp_deg(const T & value, const T range_deg = 85)
   {
@@ -292,15 +309,9 @@ private:
   std::string velocity_controller_name;
   std::string sensor_name;
   std::shared_ptr<ParamListener> param_listener;
-  std::mutex mutex_param_gains;
 
-  double gain_roll_p = 0;
-  double gain_roll_i = 0;
-  double gain_roll_d = 0;
-  double gain_pitch_p = 0;
-  double gain_pitch_i = 0;
-  double gain_pitch_d = 0;
-  double gain_yaw_p = 0;
+  realtime_tools::RealtimeThreadSafeBox<Gains> gains_box;
+  Gains gains_rt;
 
   std::array<double, n> integral_errors = {};
 
