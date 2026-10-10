@@ -69,8 +69,10 @@ public:
       {
         mutex_param_gains.lock();
         gain_roll_p = params.gains.roll.p;
+        gain_roll_i = params.gains.roll.i;
         gain_roll_d = params.gains.roll.d;
         gain_pitch_p = params.gains.pitch.p;
+        gain_pitch_i = params.gains.pitch.i;
         gain_pitch_d = params.gains.pitch.d;
         gain_yaw_p = params.gains.yaw_rate.p;
         mutex_param_gains.unlock();
@@ -102,11 +104,20 @@ public:
 
     mutex_param_gains.lock();
     gain_roll_p = params.gains.roll.p;
+    gain_roll_i = params.gains.roll.i;
     gain_roll_d = params.gains.roll.d;
     gain_pitch_p = params.gains.pitch.p;
+    gain_pitch_i = params.gains.pitch.i;
     gain_pitch_d = params.gains.pitch.d;
     gain_yaw_p = params.gains.yaw_rate.p;
     mutex_param_gains.unlock();
+
+    return controller_interface::CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override
+  {
+    integral_errors.fill(0);
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -173,8 +184,6 @@ public:
     msg[0].error_dot = -wx;
     msg[1].error_dot = -wy;
     msg[2].error_dot = 0;
-    // PD controller without I term
-    msg[0].i_term = msg[1].i_term = msg[2].i_term = 0;
 
     std::array<double, n> cmds;
 
@@ -187,8 +196,23 @@ public:
     //       = w_ref - w
     // Since the angular velocity is controlled by a downstream controller,
     // we set w_ref = 0, hence de/dt = - w.
-    cmds[0] = gain_roll_p * roll_err + gain_roll_d * -wx;
-    cmds[1] = gain_pitch_p * pitch_err + gain_pitch_d * -wy;
+
+    // terms
+    const double p_roll = gain_roll_p * roll_err;
+    const double p_pitch = gain_pitch_p * pitch_err;
+    const double d_roll = gain_roll_d * -wx;
+    const double d_pitch = gain_pitch_d * -wy;
+
+    integral_errors[0] += roll_err * period.seconds();
+    integral_errors[1] += pitch_err * period.seconds();
+
+    const double i_roll = gain_roll_i * integral_errors[0];
+    const double i_pitch = gain_pitch_i * integral_errors[1];
+
+    // attitude PID control
+    cmds[0] = p_roll + i_roll + d_roll;
+    cmds[1] = p_pitch + i_pitch + d_pitch;
+
     // yaw rate P-control
     cmds[2] = gain_yaw_p * yaw_rate_err;
 
@@ -196,12 +220,20 @@ public:
     msg[0].p_gain = gain_roll_p;
     msg[1].p_gain = gain_pitch_p;
     msg[2].p_gain = gain_yaw_p;
+
+    // I gains
+    msg[0].i_gain = gain_roll_i;
+    msg[1].i_gain = gain_pitch_i;
+    msg[2].i_gain = 0;
+
+    msg[0].i_term = i_roll;
+    msg[1].i_term = i_pitch;
+    msg[2].i_term = 0;
+
     // D gains
     msg[0].d_gain = gain_roll_d;
     msg[1].d_gain = gain_pitch_d;
     msg[2].d_gain = 0;
-    // no I gains
-    msg[0].i_gain = msg[1].i_gain = msg[2].i_gain = 0;
 
     mutex_param_gains.unlock();
 
@@ -263,10 +295,14 @@ private:
   std::mutex mutex_param_gains;
 
   double gain_roll_p = 0;
+  double gain_roll_i = 0;
   double gain_roll_d = 0;
   double gain_pitch_p = 0;
+  double gain_pitch_i = 0;
   double gain_pitch_d = 0;
   double gain_yaw_p = 0;
+
+  std::array<double, n> integral_errors = {};
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_reference;
