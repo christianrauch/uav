@@ -22,6 +22,11 @@ uav::controllers::attitude:
         type: double
         validation:
           gt_eq<>: 0
+      i:
+        type: double
+        default_value: 0
+        validation:
+          gt_eq<>: 0
       d:
         type: double
         default_value: 0
@@ -30,6 +35,11 @@ uav::controllers::attitude:
     pitch:
       p:
         type: double
+        validation:
+          gt_eq<>: 0
+      i:
+        type: double
+        default_value: 0
         validation:
           gt_eq<>: 0
       d:
