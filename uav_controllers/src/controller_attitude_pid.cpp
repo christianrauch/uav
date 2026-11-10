@@ -83,6 +83,11 @@ public:
       "~/reference", 1, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) -> void
       { msg_reference.set(*msg); });
 
+    sub_autotune_rate_setpoint = get_node()->create_subscription<geometry_msgs::msg::Vector3>(
+      "~/autotune_rate_setpoint", 1,
+      [this](const geometry_msgs::msg::Vector3::SharedPtr msg) -> void
+      { msg_autotune_rate_setpoint.set(*msg); });
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -224,6 +229,16 @@ public:
     // yaw rate P-control
     cmds[2] = gains.yaw_p * yaw_rate_err;
 
+    // add autotune excitation to the angular velocity setpoint
+    if (
+      const std::optional<geometry_msgs::msg::Vector3> autotune_excitation =
+        msg_autotune_rate_setpoint.try_get())
+    {
+      cmds[0] += autotune_excitation->x;
+      cmds[1] += autotune_excitation->y;
+      cmds[2] += autotune_excitation->z;
+    }
+
     // P gains
     msg[0].p_gain = gains.roll_p;
     msg[1].p_gain = gains.pitch_p;
@@ -317,6 +332,9 @@ private:
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_reference;
   realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_reference;
+
+  rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr sub_autotune_rate_setpoint;
+  realtime_tools::RealtimeThreadSafeBox<geometry_msgs::msg::Vector3> msg_autotune_rate_setpoint;
 
   std::array<rclcpp::Publisher<control_msgs::msg::PidState>::SharedPtr, n> pub_pids;
   std::array<realtime_tools::RealtimePublisher<control_msgs::msg::PidState>::UniquePtr, n>
