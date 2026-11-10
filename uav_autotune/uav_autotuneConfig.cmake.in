@@ -1,0 +1,14 @@
+# - Config file for the uav_autotune package
+# It defines the following variables
+#  uav_autotune_INCLUDE_DIRS - include directories for FooBar
+#  uav_autotune_LIBRARIES    - libraries to link against
+#  uav_autotune_EXECUTABLE   - the bar executable
+
+set(uav_autotune_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+include("${uav_autotune_DIR}/export_uav_autotune.cmake")
+
+# These are IMPORTED targets created by uav_autotuneTargets.cmake
+
+
