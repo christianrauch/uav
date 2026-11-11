@@ -47,6 +47,9 @@
 // instantiate template for specific types
 template class LowPassFilter2p<float>;
 template class LowPassFilter2p<Eigen::Vector3f>;
+template float LowPassFilter2p<float>::reset<float, true>(const float & sample);
+template Eigen::Vector3f LowPassFilter2p<Eigen::Vector3f>::reset<Eigen::Vector3f, true>(
+  const Eigen::Vector3f & sample);
 
 static constexpr float M_PI_F = std::numbers::pi_v<float>;
 
