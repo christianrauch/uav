@@ -36,6 +36,7 @@ install(TARGETS
   LowPassFilter2p
   AlphaFilter
   SystemIdentification
+  arx_rls
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

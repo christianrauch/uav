@@ -33,10 +33,15 @@
 
 find_package(Eigen3 REQUIRED NO_MODULE)
 
-add_library(SystemIdentification
+add_library(arx_rls SHARED arx_rls.cpp)
+target_link_libraries(arx_rls
+  PUBLIC
+    Eigen3::Eigen
+)
+
+add_library(SystemIdentification SHARED
   system_identification.cpp
   system_identification.hpp
-  arx_rls.hpp
 )
 
 target_include_directories(SystemIdentification PUBLIC
@@ -48,6 +53,7 @@ target_link_libraries(SystemIdentification
     Eigen3::Eigen
     LowPassFilter2p
     AlphaFilter
+    arx_rls
 )
 
 if(BUILD_TESTING)
@@ -59,6 +65,7 @@ if(BUILD_TESTING)
   target_link_libraries (arx_rls_test
     PRIVATE
       Eigen3::Eigen
+      arx_rls
       GTest::gtest_main
   )
 

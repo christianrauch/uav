@@ -58,149 +58,48 @@
 
 #pragma once
 
-#include <Eigen/Core>
 #include <stddef.h>
+#include <Eigen/Core>
 
-template <size_t N, size_t M, size_t D> class ArxRls final {
+template <size_t N, size_t M, size_t D>
+class ArxRls final
+{
 public:
-  ArxRls() {
-    static_assert(N >= M, "The transfer function needs to be proper");
+  ArxRls();
 
-    reset();
-  }
+  ~ArxRls();
 
-  ~ArxRls() = default;
+  void setForgettingFactor(float time_constant, float dt);
 
-  void setForgettingFactor(float time_constant, float dt) {
-    _lambda = 1.f - dt / time_constant;
-  }
-  void setForgettingFactor(float lambda) { _lambda = lambda; }
+  void setForgettingFactor(float lambda);
 
   /*
    * return the vector of estimated parameters
    * [a_1 .. a_n b_0 .. b_m]'
    */
-  const Eigen::Vector<float, N + M + 1> &getCoefficients() const {
-    return _theta_hat;
-  }
-  const Eigen::Vector<float, N + M + 1> getVariances() const {
-    return _P.diagonal();
-  }
-  float getInnovation() const { return _innovation; }
-  const Eigen::Vector<float, N + M + 1> &getDiffEstimate() const {
-    return _diff_theta_hat;
-  }
+  const Eigen::Vector<float, N + M + 1> & getCoefficients() const;
 
-  void reset(const Eigen::Vector<float, N + M + 1> &theta_init =
-                 Eigen::Vector<float, N + M + 1>::Zero()) {
-    /* _P.uncorrelateCovarianceSetVariance<N + M + 1>(0, 10e3f); // does not
-     * work */
-    _P.setZero();
+  const Eigen::Vector<float, N + M + 1> getVariances() const;
 
-    for (size_t i = 0; i < (N + M + 1); i++) {
-      _P(i, i) = 10e3f;
-    }
+  float getInnovation() const;
 
-    _diff_theta_hat.setZero();
+  const Eigen::Vector<float, N + M + 1> & getDiffEstimate() const;
 
-    _theta_hat = theta_init;
+  void reset(
+    const Eigen::Vector<float, N + M + 1> & theta_init = Eigen::Vector<float, N + M + 1>::Zero());
 
-    for (size_t i = 0; i < M + D + 1; i++) {
-      _u[i] = 0.f;
-    }
-
-    for (size_t i = 0; i < N + 1; i++) {
-      _y[i] = 0.f;
-    }
-
-    _nb_samples = 0;
-    _innovation = 0.f;
-  }
-
-  void update(float u, float y) {
-    const Eigen::Vector<float, N + M + 1> theta_prev = _theta_hat;
-
-    addInputOutput(u, y);
-
-    if (!isBufferFull()) {
-      // Do not start to update the RLS algorithm when the
-      // buffer still contains zeros
-      return;
-    }
-
-    const Eigen::Vector<float, N + M + 1> phi = constructDesignVector();
-    const Eigen::Matrix<float, 1, N + M + 1> phi_t = phi.transpose();
-
-    _P = (_P - _P * phi * phi_t * _P / (_lambda + (phi_t * _P * phi)(0, 0))) /
-         _lambda;
-    _innovation = _y[N] - (phi_t * _theta_hat)(0, 0);
-    _theta_hat = _theta_hat + _P * phi * _innovation;
-
-    for (size_t i = 0; i < N + M + 1; i++) {
-      _diff_theta_hat(i) = fabsf(_theta_hat(i) - theta_prev(i));
-    }
-
-    /* fixCovarianceErrors(); // TODO: this could help against ill-conditioned
-     * matrix but needs more testing*/
-  }
+  void update(float u, float y);
 
 private:
-  void addInputOutput(float u, float y) {
-    shiftRegisters();
-    _u[M + D] = u;
-    _y[N] = y;
+  void addInputOutput(float u, float y);
 
-    if (!isBufferFull()) {
-      _nb_samples++;
-    }
-  }
+  void shiftRegisters();
 
-  void shiftRegisters() {
-    for (size_t i = 0; i < N; i++) {
-      _y[i] = _y[i + 1];
-    }
+  bool isBufferFull() const;
 
-    for (size_t i = 0; i < (M + D); i++) {
-      _u[i] = _u[i + 1];
-    }
-  }
+  Eigen::Vector<float, N + M + 1> constructDesignVector() const;
 
-  bool isBufferFull() const { return _nb_samples > (M + N + D); }
-
-  Eigen::Vector<float, N + M + 1> constructDesignVector() const {
-    Eigen::Vector<float, N + M + 1> phi;
-
-    for (size_t i = 0; i < N; i++) {
-      phi(i) = -_y[N - i - 1];
-    }
-
-    int j = 0;
-
-    for (size_t i = N; i < (N + M + 1); i++) {
-      phi(i) = _u[M - j];
-      j++;
-    }
-
-    return phi;
-  }
-
-  void fixCovarianceErrors() {
-    float max_var = 0.f;
-
-    for (size_t i = 0; i < (N + M + 1); i++) {
-      if (_P(i, i) > max_var) {
-        max_var = _P(i, i);
-      }
-    }
-
-    const float min_var_allowed = max_var * 0.1f;
-
-    for (size_t i = 0; i < (N + M + 1); i++) {
-      if (_P(i, i) < min_var_allowed) {
-        _P(i, i) = min_var_allowed;
-      }
-    }
-  }
+  void fixCovarianceErrors();
 
   Eigen::Matrix<float, N + M + 1, N + M + 1> _P;
   Eigen::Vector<float, N + M + 1> _theta_hat;

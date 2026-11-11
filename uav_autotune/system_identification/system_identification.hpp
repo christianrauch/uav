@@ -39,9 +39,9 @@
 
 #pragma once
 
-#include "../filter/AlphaFilter.hpp"
-#include "../filter/LowPassFilter2p.hpp"
-#include "arx_rls.hpp"
+#include <AlphaFilter.hpp>
+#include <LowPassFilter2p.hpp>
+#include <arx_rls.hpp>
 
 #include <Eigen/Core>
 
