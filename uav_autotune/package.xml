@@ -3,9 +3,13 @@
 <package format="3">
   <name>uav_autotune</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>library for autotuning</description>
   <maintainer email="Rauch.Christian@gmx.de">Christian Rauch</maintainer>
   <license>BSD-3-Clause</license>
+
+  <depend>eigen</depend>
+
+  <test_depend>libgtest-dev</test_depend>
 
   <export>
     <build_type>cmake</build_type>
