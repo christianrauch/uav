@@ -15,3 +15,50 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_subdirectory(pid_design)
 add_subdirectory(filter)
 add_subdirectory(system_identification)
+
+set(package_cmake_install_dir lib/cmake/${PROJECT_NAME})
+set(CONF_INCLUDE_DIRS "\${uav_autotune_DIR}/../../../include")
+
+configure_file(
+  uav_autotuneConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  @ONLY
+)
+
+configure_file(
+  uav_autotuneConfigVersion.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  @ONLY
+)
+
+install(TARGETS
+  pid_design
+  LowPassFilter2p
+  AlphaFilter
+  SystemIdentification
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
+install(EXPORT export_${PROJECT_NAME}
+  FILE export_${PROJECT_NAME}.cmake
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${package_cmake_install_dir}
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  DESTINATION ${package_cmake_install_dir}
+)
+
+install(DIRECTORY
+  pid_design
+  filter
+  system_identification
+  DESTINATION include/${PROJECT_NAME}
+  FILES_MATCHING PATTERN "*.hpp"
+)

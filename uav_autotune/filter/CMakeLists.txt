@@ -1,7 +1,11 @@
 find_package(Eigen3 REQUIRED NO_MODULE)
 
 add_library(LowPassFilter2p SHARED LowPassFilter2p.cpp)
-target_link_libraries (LowPassFilter2p
+target_include_directories(LowPassFilter2p PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(LowPassFilter2p
   PUBLIC
     Eigen3::Eigen
 )
@@ -12,7 +16,11 @@ target_compile_definitions(LowPassFilter2p
 )
 
 add_library(AlphaFilter SHARED AlphaFilter.cpp)
-target_link_libraries (AlphaFilter
+target_include_directories(AlphaFilter PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(AlphaFilter
   PUBLIC
     Eigen3::Eigen
 )
