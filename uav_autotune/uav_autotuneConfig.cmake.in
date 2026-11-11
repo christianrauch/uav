@@ -7,8 +7,19 @@
 set(uav_autotune_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
 
 # Our library dependencies (contains definitions for IMPORTED targets)
+include(CMakeFindDependencyMacro)
+find_dependency(Eigen3 REQUIRED NO_MODULE)
+
 include("${uav_autotune_DIR}/export_uav_autotune.cmake")
 
-# These are IMPORTED targets created by uav_autotuneTargets.cmake
+set(uav_autotune_LIBRARIES
+  uav_autotune::pid_design
+  uav_autotune::LowPassFilter2p
+  uav_autotune::AlphaFilter
+  uav_autotune::arx_rls
+  uav_autotune::SystemIdentification
+)
+
+# These are IMPORTED targets created by export_uav_autotune.cmake
 
 
