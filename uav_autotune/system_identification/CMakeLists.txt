@@ -39,9 +39,15 @@ add_library(SystemIdentification
   arx_rls.hpp
 )
 
-target_link_libraries (SystemIdentification
+target_include_directories(SystemIdentification PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(SystemIdentification
   PUBLIC
     Eigen3::Eigen
+    LowPassFilter2p
+    AlphaFilter
 )
 
 if(BUILD_TESTING)
