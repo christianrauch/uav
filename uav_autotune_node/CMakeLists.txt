@@ -10,13 +10,15 @@ find_package(ament_cmake REQUIRED)
 find_package(uav_autotune REQUIRED)
 
 add_executable(uav_autotune src/uav_autotune.cpp)
-target_include_directories(uav_autotune PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+# target_include_directories(uav_autotune PUBLIC
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 target_compile_features(uav_autotune PUBLIC c_std_17 cxx_std_20)  # Require C17 and C++20
 target_link_libraries(
   uav_autotune
   ${uav_autotune_TARGETS}
+  uav_autotune::AlphaFilter
+  uav_autotune::pid_design
 )
 
 install(TARGETS uav_autotune
