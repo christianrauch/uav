@@ -1,10 +1,19 @@
-#include <cstdio>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+
 #include <uav_autotune/filter/AlphaFilter.hpp>
-#include <uav_autotune/pid_design/pid_design.hpp>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char ** argv)
+class UavAutotuneNode : public rclcpp::Node
 {
-  printf("hello world uav_autotune_node package\n");
+public:
+  explicit UavAutotuneNode(const rclcpp::NodeOptions & options)
+  : Node("uav_autotune_node", options)
+  {
+    RCLCPP_INFO(get_logger(), "uav_autotune_node started");
+  }
 
-  AlphaFilter<float> _signal_filter;
-}
+private:
+  AlphaFilter<float> signal_filter_;
+};
+
+RCLCPP_COMPONENTS_REGISTER_NODE(UavAutotuneNode)

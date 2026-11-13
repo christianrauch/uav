@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.28)
 project(uav_autotune_node)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -7,22 +7,30 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(uav_autotune REQUIRED)
 
-add_executable(uav_autotune src/uav_autotune.cpp)
-# target_include_directories(uav_autotune PUBLIC
-#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(uav_autotune PUBLIC c_std_17 cxx_std_20)  # Require C17 and C++20
-target_link_libraries(
-  uav_autotune
-  ${uav_autotune_TARGETS}
+add_library(uav_autotune_component SHARED src/uav_autotune.cpp)
+target_compile_features(uav_autotune_component PUBLIC cxx_std_20)
+target_link_libraries(uav_autotune_component PUBLIC
+  rclcpp::rclcpp
+  rclcpp_components::component
   uav_autotune::AlphaFilter
-  uav_autotune::pid_design
 )
 
-install(TARGETS uav_autotune
-  DESTINATION lib/${PROJECT_NAME})
+rclcpp_components_register_node(uav_autotune_component
+  PLUGIN "UavAutotuneNode"
+  EXECUTABLE uav_autotune_node
+)
+
+install(TARGETS uav_autotune_component
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+)
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp rclcpp_components uav_autotune)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
