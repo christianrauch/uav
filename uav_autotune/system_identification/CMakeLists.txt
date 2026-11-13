@@ -37,7 +37,7 @@ add_library(arx_rls SHARED arx_rls.cpp)
 target_include_directories(arx_rls PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+  # $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 target_link_libraries(arx_rls
   PUBLIC
@@ -52,7 +52,7 @@ add_library(SystemIdentification SHARED
 target_include_directories(SystemIdentification PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+  # $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 target_compile_features(SystemIdentification PUBLIC cxx_std_20)
 target_link_libraries(SystemIdentification

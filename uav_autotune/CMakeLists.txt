@@ -17,10 +17,10 @@ add_subdirectory(filter)
 add_subdirectory(system_identification)
 
 set(package_cmake_install_dir lib/cmake/${PROJECT_NAME})
-set(CONF_INCLUDE_DIRS
-  "\${uav_autotune_DIR}/../../../include"
-  "\${uav_autotune_DIR}/../../../include/${PROJECT_NAME}"
-)
+# set(CONF_INCLUDE_DIRS
+#   "\${uav_autotune_DIR}/../../../include"
+#   "\${uav_autotune_DIR}/../../../include/${PROJECT_NAME}"
+# )
 
 configure_file(
   uav_autotuneConfig.cmake.in
