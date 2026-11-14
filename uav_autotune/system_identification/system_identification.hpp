@@ -39,9 +39,9 @@
 
 #pragma once
 
-#include <filter/AlphaFilter.hpp>
-#include <filter/LowPassFilter2p.hpp>
-#include <system_identification/arx_rls.hpp>
+#include <uav_autotune/filter/AlphaFilter.hpp>
+#include <uav_autotune/filter/LowPassFilter2p.hpp>
+#include <uav_autotune/system_identification/arx_rls.hpp>
 
 #include <Eigen/Core>
 

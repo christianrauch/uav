@@ -2,9 +2,8 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 
 add_library(pid_design SHARED pid_design.cpp)
 target_include_directories(pid_design PUBLIC
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/..>
   $<INSTALL_INTERFACE:include>
-  # $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 target_link_libraries(pid_design
   PUBLIC
