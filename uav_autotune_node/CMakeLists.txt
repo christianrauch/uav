@@ -7,16 +7,21 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(uav_autotune REQUIRED)
 
 add_library(uav_autotune_component SHARED src/uav_autotune.cpp)
 target_compile_features(uav_autotune_component PUBLIC cxx_std_20)
 target_link_libraries(uav_autotune_component PUBLIC
+  geometry_msgs::geometry_msgs__rosidl_generator_cpp
   rclcpp::rclcpp
   rclcpp_components::component
+  std_msgs::std_msgs__rosidl_generator_cpp
   uav_autotune::AlphaFilter
+  uav_autotune::SystemIdentification
 )
 
 rclcpp_components_register_node(uav_autotune_component
