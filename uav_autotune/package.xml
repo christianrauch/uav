@@ -7,6 +7,8 @@
   <maintainer email="Rauch.Christian@gmx.de">Christian Rauch</maintainer>
   <license>BSD-3-Clause</license>
 
+  <buildtool_depend>cmake</buildtool_depend>
+
   <depend>eigen</depend>
 
   <test_depend>libgtest-dev</test_depend>
