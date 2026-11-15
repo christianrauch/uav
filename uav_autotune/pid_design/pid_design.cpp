@@ -97,9 +97,7 @@ Eigen::Vector3f pid_design::computePidGmvc(
   }
 
   const float kc = -(f1 + 2.f * f2) / nu;
-  float ki = -(f0 + f1 + f2) / (dt * (f1 + 2.f * f2));
-  ki /= 5.f;  // This is not part of the original implementation but is required
-              // to produce reasonable gains
+  const float ki = -(f0 + f1 + f2) / (dt * (f1 + 2.f * f2));
   const float kd = -dt * f2 / (f1 + 2.f * f2);
 
   return Eigen::Vector3f(kc, ki, kd);

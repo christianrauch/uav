@@ -51,6 +51,6 @@ TEST(PidDesignTest, testImpl) {
 
   // Compare with values generated from the python implementation
   EXPECT_NEAR(kid(0), 0.129f, .001f);
-  EXPECT_NEAR(kid(1), 11.911f / 5.f, .001f);
+  EXPECT_NEAR(kid(1), 11.911f, .001f);
   EXPECT_NEAR(kid(2), 0.0463f, .0001f);
 }
