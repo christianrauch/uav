@@ -155,6 +155,7 @@ private:
       }
 
       last_enable_request_ = false;
+      axis_gains_valid_.fill(false);
       {
         std::lock_guard<std::mutex> lock(telemetry_mutex_);
         autotune_enabled_ = true;
@@ -472,7 +473,7 @@ private:
           }
           else
           {
-            fail_autotune(now, "Roll PID gain is invalid");
+            fail_autotune(now, "Roll tuning failed: rate PID P gain or normalization is invalid");
           }
         }
         break;
@@ -482,6 +483,7 @@ private:
             (now - state_start_time_).seconds() > 5.0)
         {
           copy_gains(0);
+          validate_and_report_axis_gains(0);
           state_ = State::roll_pause;
           state_start_time_ = now;
         }
@@ -502,7 +504,7 @@ private:
           }
           else
           {
-            fail_autotune(now, "Pitch PID gain is invalid");
+            fail_autotune(now, "Pitch tuning failed: rate PID P gain or normalization is invalid");
           }
         }
         break;
@@ -512,6 +514,7 @@ private:
             (now - state_start_time_).seconds() > 5.0)
         {
           copy_gains(1);
+          validate_and_report_axis_gains(1);
           state_ = State::pitch_pause;
           state_start_time_ = now;
         }
@@ -532,7 +535,7 @@ private:
           }
           else
           {
-            fail_autotune(now, "Yaw PID gain is invalid");
+            fail_autotune(now, "Yaw tuning failed: rate PID P gain or normalization is invalid");
           }
         }
         break;
@@ -542,6 +545,7 @@ private:
             (now - state_start_time_).seconds() > 5.0)
         {
           copy_gains(2);
+          validate_and_report_axis_gains(2);
           state_ = State::yaw_pause;
           state_start_time_ = now;
         }
@@ -561,7 +565,10 @@ private:
         break;
 
       case State::verification:
-        state_ = are_gains_good() ? State::apply : State::fail;
+        state_ = std::all_of(
+            axis_gains_valid_.begin(), axis_gains_valid_.end(), [](bool valid) { return valid; }) ?
+          State::apply :
+          State::fail;
         state_start_time_ = now;
         break;
 
@@ -597,7 +604,12 @@ private:
       state_ != State::idle && state_ != State::complete && state_ != State::fail &&
       state_ != State::apply && (now - state_start_time_).seconds() > 20.0)
     {
-      fail_autotune(now, "Timed out waiting for system identification to converge");
+      const int axis = active_axis();
+      const std::string reason = axis >= 0 ?
+        std::string("Timed out waiting for ") + axis_name(static_cast<size_t>(axis)) +
+          " system identification to converge" :
+        "Timed out waiting for system identification to converge";
+      fail_autotune(now, reason);
     }
 
     if (state_ != previous_state)
@@ -789,14 +801,52 @@ private:
     }
   }
 
-  bool are_gains_good() const
+  static const char * axis_name(size_t axis)
   {
-    const bool are_positive = rate_k_.minCoeff() > 0.f && rate_i_.minCoeff() > 0.f &&
-      rate_d_.minCoeff() >= 0.f && att_p_.minCoeff() > 0.f;
-    const bool are_small_enough = rate_k_.maxCoeff() < 0.5f && rate_i_.maxCoeff() < 10.f &&
-      rate_d_.maxCoeff() < 0.1f && att_p_.maxCoeff() < 12.f;
+    static constexpr std::array<const char *, 3> names{"Roll", "Pitch", "Yaw"};
+    return names[axis];
+  }
 
-    return are_positive && are_small_enough;
+  std::string validate_axis_gains(size_t axis) const
+  {
+    static constexpr std::array<const char *, 4> names{
+      "rate Kc", "rate Ki", "rate Kd", "attitude P"};
+    static constexpr std::array<float, 4> upper_limits{0.5f, 10.f, 0.1f, 12.f};
+    const std::array<float, 4> values{
+      rate_k_(axis), rate_i_(axis), rate_d_(axis), att_p_(axis)};
+
+    for (size_t gain = 0; gain < values.size(); ++gain)
+    {
+      const std::string label = std::string(axis_name(axis)) + " tuning failed: " + names[gain];
+      if (!std::isfinite(values[gain]))
+      {
+        return label + " is not finite (got " + std::to_string(values[gain]) + ")";
+      }
+
+      const bool lower_bound_valid = gain == 2 ? values[gain] >= 0.f : values[gain] > 0.f;
+      if (!lower_bound_valid || values[gain] >= upper_limits[gain])
+      {
+        const char * lower_bound = gain == 2 ? "[0, " : "(0, ";
+        return label + "=" + std::to_string(values[gain]) + " must be in " + lower_bound +
+               std::to_string(upper_limits[gain]) + ")";
+      }
+    }
+
+    return {};
+  }
+
+  void validate_and_report_axis_gains(size_t axis)
+  {
+    const std::string error = validate_axis_gains(axis);
+    if (!error.empty())
+    {
+      axis_gains_valid_[axis] = false;
+      RCLCPP_ERROR(get_logger(), "%s", error.c_str());
+      return;
+    }
+
+    axis_gains_valid_[axis] = true;
+    RCLCPP_INFO(get_logger(), "%s axis candidate gains passed validation", axis_name(axis));
   }
 
   geometry_msgs::msg::Vector3 get_identification_signal()
@@ -846,6 +896,7 @@ private:
 
   bool autotune_enabled_{false};
   bool last_enable_request_{false};
+  std::array<bool, 3> axis_gains_valid_{};
   bool new_angular_velocity_sample_{false};
   State state_{State::idle};
 
