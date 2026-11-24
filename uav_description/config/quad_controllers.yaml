@@ -151,6 +151,7 @@ attitude:
 attitude_mode:
   ros__parameters:
     attitude_controller_name: attitude
+    angular_velocity_controller_name: angular_velocity
     mixer: control_allocation
     rpyt_channels: [2, 3, 4, 1]
     max_tilt: 45.

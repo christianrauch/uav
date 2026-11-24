@@ -5,8 +5,15 @@ uav::flight_mode:
     validation:
       not_empty<>: null
     description:
-      "Name of controller that exports the command interfaces 'roll', 'pitch',
-      and 'yaw_rate'."
+      "Name of controller that exports the command interfaces for 'roll' and 'pitch'."
+
+  angular_velocity_controller_name:
+    type: string
+    read_only: true
+    validation:
+      not_empty<>: null
+    description:
+      "Name of controller that exports the 'angular_velocity.z' command interface."
 
   mixer:
     type: string

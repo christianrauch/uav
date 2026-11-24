@@ -15,7 +15,7 @@ public:
       attitude_controller_name + "/roll",
       attitude_controller_name + "/pitch",
       // yaw rate
-      attitude_controller_name + "/yaw_rate",
+      angular_velocity_controller_name + "/angular_velocity.z",
       // thrust
       mixer_name + "/thrust",
     };
@@ -46,10 +46,12 @@ public:
   {
     const Params params = param_listener->get_params();
 
-    // maximum roll and pitch in degree
     attitude_controller_name = params.attitude_controller_name;
+    angular_velocity_controller_name = params.angular_velocity_controller_name;
     mixer_name = params.mixer;
     rpyt_channels = params.rpyt_channels;
+
+    // maximum roll and pitch in degree
     max_tilt = params.max_tilt;
 
     return controller_interface::CallbackReturn::SUCCESS;
@@ -88,6 +90,7 @@ private:
   }
 
   std::string attitude_controller_name;
+  std::string angular_velocity_controller_name;
   std::string mixer_name;
   std::vector<int64_t> rpyt_channels;
   double max_tilt;
