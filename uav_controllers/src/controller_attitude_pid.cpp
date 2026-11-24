@@ -24,7 +24,6 @@ public:
       {
         std::format("{}/{}", velocity_controller_name, command_interfaces[0]),
         std::format("{}/{}", velocity_controller_name, command_interfaces[1]),
-        std::format("{}/{}", velocity_controller_name, command_interfaces[2]),
       }};
   }
 
@@ -41,7 +40,6 @@ public:
         // angular velocity [rad/s]
         sensor_name + "/angular_velocity.x",
         sensor_name + "/angular_velocity.y",
-        sensor_name + "/angular_velocity.z",
       }};
   }
 
@@ -74,7 +72,6 @@ public:
         gains.pitch_p = params.gains.pitch.p;
         gains.pitch_i = params.gains.pitch.i;
         gains.pitch_d = params.gains.pitch.d;
-        gains.yaw_p = params.gains.yaw_rate.p;
 
         gains_box.set(gains);
       });
@@ -110,7 +107,6 @@ public:
     gains.pitch_p = params.gains.pitch.p;
     gains.pitch_i = params.gains.pitch.i;
     gains.pitch_d = params.gains.pitch.d;
-    gains.yaw_p = params.gains.yaw_rate.p;
 
     gains_rt = gains;
     gains_box.set(gains);
@@ -134,8 +130,6 @@ public:
     {
       status_ok &= ordered_exported_reference_interfaces_[0]->set_value(msg->x);  // roll [rad]
       status_ok &= ordered_exported_reference_interfaces_[1]->set_value(msg->y);  // pitch [rad]
-      status_ok &=
-        ordered_exported_reference_interfaces_[2]->set_value(msg->z);  // yaw rate [rad/s]
     }
 
     return controller_interface::return_type(!status_ok);
@@ -162,7 +156,6 @@ public:
     // angular velocity [rad/s]
     const double wx = state_interfaces_[4].get_optional().value_or(nan);
     const double wy = state_interfaces_[5].get_optional().value_or(nan);
-    const double wz = state_interfaces_[6].get_optional().value_or(nan);
 
     const Eigen::Matrix3d R_state = q_state.toRotationMatrix();
 
@@ -171,18 +164,16 @@ public:
     // pitch: angle between body x-axis and world z-orthogonal plane (clockwise rot. about y-axis)
     const double pitch_state = -std::asin(R_state(2, 0));
 
-    // levelled and no yaw rotation by default
+    // levelled by default
     const std::array<double, n> reference_values = {
       ordered_exported_reference_interfaces_[0]->get_optional().value_or(0),
       ordered_exported_reference_interfaces_[1]->get_optional().value_or(0),
-      ordered_exported_reference_interfaces_[2]->get_optional().value_or(0),
     };
 
     const double roll_err = clamp_deg(reference_values[0]) - roll_state;
     const double pitch_err = clamp_deg(reference_values[1]) - pitch_state;
-    const double yaw_rate_err = reference_values[2] - wz;
 
-    if (command_interfaces_.size() != 3)
+    if (command_interfaces_.size() != n)
     {
       return controller_interface::return_type::ERROR;
     }
@@ -190,10 +181,8 @@ public:
     // error terms with redundant fields
     msg[0].error = roll_err;
     msg[1].error = pitch_err;
-    msg[2].error = yaw_rate_err;
     msg[0].error_dot = -wx;
     msg[1].error_dot = -wy;
-    msg[2].error_dot = 0;
 
     std::array<double, n> cmds;
 
@@ -221,27 +210,20 @@ public:
     cmds[0] = p_roll + i_roll + d_roll;
     cmds[1] = p_pitch + i_pitch + d_pitch;
 
-    // yaw rate P-control
-    cmds[2] = gains.yaw_p * yaw_rate_err;
-
     // P gains
     msg[0].p_gain = gains.roll_p;
     msg[1].p_gain = gains.pitch_p;
-    msg[2].p_gain = gains.yaw_p;
 
     // I gains
     msg[0].i_gain = gains.roll_i;
     msg[1].i_gain = gains.pitch_i;
-    msg[2].i_gain = 0;
 
     msg[0].i_term = i_roll;
     msg[1].i_term = i_pitch;
-    msg[2].i_term = 0;
 
     // D gains
     msg[0].d_gain = gains.roll_d;
     msg[1].d_gain = gains.pitch_d;
-    msg[2].d_gain = 0;
 
     bool status_ok = true;
 
@@ -264,9 +246,7 @@ public:
                  << "roll: " << roll_state << " > " << roll_err << " -> "
                  << command_interfaces_[0].get_optional().value_or(nan) << " [rad/s]" << std::endl
                  << "pitch: " << pitch_state << " > " << pitch_err << " -> "
-                 << command_interfaces_[1].get_optional().value_or(nan) << " [rad/s]" << std::endl
-                 << "yaw_rate: " << reference_values[2] << " > " << wz << " -> "
-                 << command_interfaces_[2].get_optional().value_or(nan) << " [rad/s]");
+                 << command_interfaces_[1].get_optional().value_or(nan) << " [rad/s]");
 
     return controller_interface::return_type(!status_ok);
   }
@@ -280,7 +260,6 @@ private:
     double pitch_p = 0;
     double pitch_i = 0;
     double pitch_d = 0;
-    double yaw_p = 0;
   };
 
   template <typename T>
@@ -292,18 +271,16 @@ private:
 
   static constexpr double nan = std::numeric_limits<double>::signaling_NaN();
 
-  static constexpr int8_t n = 3;
+  static constexpr int8_t n = 2;
 
   static constexpr std::array<std::string_view, n> command_interfaces = {
     "angular_velocity.x",
     "angular_velocity.y",
-    "angular_velocity.z",
   };
 
   static constexpr std::array<std::string_view, n> reference_interface_names = {
     "roll",
     "pitch",
-    "yaw_rate",
   };
 
   std::string velocity_controller_name;
