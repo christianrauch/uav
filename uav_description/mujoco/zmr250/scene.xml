@@ -3,6 +3,12 @@
 
   <statistic center="0 0 0.1" extent="0.6" meansize=".05"/>
 
+  <default>
+    <default class="world_frame">
+      <geom type="capsule" size="0.004" contype="0" conaffinity="0" mass="0"/>
+    </default>
+  </default>
+
   <visual>
     <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
     <rgba haze="0.15 0.25 0.35 1"/>
@@ -19,5 +25,12 @@
   <worldbody>
     <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+
+    <!-- world frame axes -->
+    <body name="world_frame" childclass="world_frame">
+      <geom name="frame_x" fromto="0 0 0 0.2 0 0" rgba="1 0 0 1"/>
+      <geom name="frame_y" fromto="0 0 0 0 0.2 0" rgba="0 1 0 1"/>
+      <geom name="frame_z" fromto="0 0 0 0 0 0.2" rgba="0 0 1 1"/>
+    </body>
   </worldbody>
 </mujoco>
