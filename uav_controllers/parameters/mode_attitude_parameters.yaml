@@ -1,19 +1,41 @@
 uav::flight_mode:
-  attitude_controller_name:
+  control_type:
     type: string
     read_only: true
     validation:
-      not_empty<>: null
+      one_of<>: [["attitude", "orientation"]]
     description:
-      "Name of controller that exports the command interfaces for 'roll' and 'pitch'."
+      "Set the control interface types: attitude ('roll', 'pitch', 'angular_velocity.z') or orientation ('quaternion')."
 
-  angular_velocity_controller_name:
-    type: string
-    read_only: true
-    validation:
-      not_empty<>: null
-    description:
-      "Name of controller that exports the 'angular_velocity.z' command interface."
+  attitude:
+    attitude_controller_name:
+      type: string
+      default_value: ""
+      read_only: true
+      description:
+        "Name of controller that exports the command interfaces for 'roll' and 'pitch'."
+
+    angular_velocity_controller_name:
+      type: string
+      default_value: ""
+      read_only: true
+      description:
+        "Name of controller that exports the 'angular_velocity.z' command interface."
+
+  orientation:
+    controller_name:
+      type: string
+      default_value: ""
+      read_only: true
+      description:
+        "Name of controller that exports the 'quaternion' command interfaces."
+
+    sensor_name:
+      type: string
+      default_value: ""
+      read_only: true
+      description:
+        "State estimator providing the orientation estimate."
 
   mixer:
     type: string
@@ -40,3 +62,12 @@ uav::flight_mode:
       bounds<>: [0, 90]
     description:
       "Maximum tilt angle in degrees."
+
+  max_yaw_rate:
+    type: double
+    default_value: 180
+    read_only: true
+    validation:
+      gt<>: 0
+    description:
+      "Maximum yaw rate in degrees per second."

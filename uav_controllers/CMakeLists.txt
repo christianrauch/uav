@@ -118,6 +118,7 @@ add_library(mode_attitude SHARED
 target_link_libraries(mode_attitude PUBLIC
   mode_attitude_parameters
   controller_interface::controller_interface
+  Eigen3::Eigen
 )
 
 generate_parameter_library(

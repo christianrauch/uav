@@ -81,6 +81,7 @@ def generate_launch_description():
             '--inactive',
             'control_allocation',
             'angular_velocity',
+            'angular_position',
             'attitude',
             'attitude_mode',
         ],
@@ -97,7 +98,7 @@ def generate_launch_description():
             {'modes': ['none', 'attitude', '']},
             {'mode_controllers': {
                 'attitude': [
-                    'control_allocation', 'angular_velocity', 'attitude', 'attitude_mode',
+                    'control_allocation', 'angular_velocity', 'angular_position', 'attitude_mode',
                 ],
             }},
         ],
