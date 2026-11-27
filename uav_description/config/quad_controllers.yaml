@@ -109,7 +109,7 @@ control_allocation:
 angular_velocity:
   ros__parameters:
     mixer: control_allocation
-    sensor_name: fusion
+    sensor_name: base_imu
     # https://en.wikipedia.org/wiki/Ziegler–Nichols_method
     # Kp = 0.2 * Ku
     # Ki = 0.4 * Ku / Tu
@@ -130,7 +130,7 @@ angular_position:
   ros__parameters:
     update_rate: 250
     velocity_controller_name: angular_velocity
-    sensor_name: fusion
+    sensor_name: base_imu
     gains:
       tau: 0.2
       roll.p: 0.4
@@ -140,7 +140,7 @@ angular_position:
 attitude:
   ros__parameters:
     velocity_controller_name: angular_velocity
-    sensor_name: fusion
+    sensor_name: base_imu
     gains:
       roll.p: 2.
       roll.d: 0.01
@@ -160,7 +160,7 @@ attitude_mode:
     # control_type: orientation
     # orientation:
     #   controller_name: angular_position
-    #   sensor_name: fusion
+    #   sensor_name: base_imu
 
     mixer: control_allocation
     rpyt_channels: [2, 3, 4, 1]
