@@ -46,6 +46,7 @@ public:
   }
 
   std::vector<hardware_interface::StateInterface::SharedPtr> on_export_state_interfaces_list()
+    override
   {
     std::vector<hardware_interface::StateInterface::SharedPtr> state_interfaces;
 
