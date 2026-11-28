@@ -150,10 +150,17 @@ attitude:
 
 attitude_mode:
   ros__parameters:
-    control_type: orientation
-    orientation:
-      controller_name: angular_position
-      sensor_name: fusion
+    update_rate: 250
+
+    control_type: attitude
+    attitude:
+      attitude_controller_name: attitude
+      angular_velocity_controller_name: angular_velocity
+
+    # control_type: orientation
+    # orientation:
+    #   controller_name: angular_position
+    #   sensor_name: fusion
 
     mixer: control_allocation
     rpyt_channels: [2, 3, 4, 1]

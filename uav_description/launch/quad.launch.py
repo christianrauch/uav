@@ -53,7 +53,7 @@ def generate_launch_description():
             # '--log-level', 'angular_velocity:=debug',
             # '--log-level', 'angular_position:=debug',
             # '--log-level', 'attitude:=debug',
-            '--log-level', 'attitude_mode:=debug',
+            # '--log-level', 'attitude_mode:=debug',
         ],
     )
 
@@ -100,7 +100,10 @@ def generate_launch_description():
             {'modes': ['none', 'attitude', '']},
             {'mode_controllers': {
                 'attitude': [
-                    'control_allocation', 'angular_velocity', 'angular_position', 'attitude_mode',
+                    'control_allocation', 'angular_velocity',
+                    # 'angular_position',
+                    'attitude',
+                    'attitude_mode',
                 ],
             }},
         ],
