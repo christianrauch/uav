@@ -151,6 +151,17 @@ public:
       };
 
       q_reference.normalize();
+
+      // initialise the orientation reference to +45 deg about world Z
+      // q_reference = Eigen::Quaterniond({std::numbers::pi / 4, Eigen::Vector3d::UnitZ()});
+
+      const Eigen::Vector3d rpy = q_reference.toRotationMatrix().eulerAngles(2, 1, 0);
+      RCLCPP_DEBUG(
+        get_node()->get_logger(),
+        "Initial orientation quaternion: x=%.6f y=%.6f z=%.6f w=%.6f; "
+        "RPY (rad): roll=%.6f pitch=%.6f yaw=%.6f",
+        q_reference.x(), q_reference.y(), q_reference.z(), q_reference.w(), rpy.z(), rpy.y(),
+        rpy.x());
     }
 
     return controller_interface::CallbackReturn::SUCCESS;
@@ -163,6 +174,8 @@ public:
     const double p = max_tilt * scale_rpy(state_interfaces_[1]);           // [rad]
     const double y = -1 * max_yaw_rate * scale_rpy(state_interfaces_[2]);  // [rad/s]
     const double t = scale_t(state_interfaces_[3]);
+
+    RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "yaw rate [rad/s] " << y);
 
     bool status_ok = true;
 
@@ -177,8 +190,42 @@ public:
     {
       // integrate yaw rate from the RC input
       const double yaw_d = y * period.seconds();
+      RCLCPP_DEBUG_STREAM(
+        get_node()->get_logger(), "yaw delta [rad] " << yaw_d << " @ dt= " << period.seconds());
+
       const Eigen::Quaterniond q_delta_yaw({yaw_d, Eigen::Vector3d::UnitZ()});
+
+      {
+        const Eigen::Vector3d rpy = q_delta_yaw.toRotationMatrix().eulerAngles(2, 1, 0);
+        RCLCPP_DEBUG(
+          get_node()->get_logger(),
+          "q delta: x=%.6f y=%.6f z=%.6f w=%.6f; "
+          "RPY (rad): roll=%.6f pitch=%.6f yaw=%.6f",
+          q_delta_yaw.x(), q_delta_yaw.y(), q_delta_yaw.z(), q_delta_yaw.w(), rpy.z(), rpy.y(),
+          rpy.x());
+      }
+
       q_reference = q_reference * q_delta_yaw;
+
+      {
+        const auto qleft = q_delta_yaw * q_reference;
+        const Eigen::Vector3d rpy = qleft.toRotationMatrix().eulerAngles(2, 1, 0);
+        RCLCPP_DEBUG(
+          get_node()->get_logger(),
+          "LEFT q new ref: x=%.6f y=%.6f z=%.6f w=%.6f; "
+          "RPY (rad): roll=%.6f pitch=%.6f yaw=%.6f",
+          qleft.x(), qleft.y(), qleft.z(), qleft.w(), rpy.z(), rpy.y(), rpy.x());
+      }
+
+      {
+        const auto qright = q_reference * q_delta_yaw;
+        const Eigen::Vector3d rpy = qright.toRotationMatrix().eulerAngles(2, 1, 0);
+        RCLCPP_DEBUG(
+          get_node()->get_logger(),
+          "RIGHT q new ref: x=%.6f y=%.6f z=%.6f w=%.6f; "
+          "RPY (rad): roll=%.6f pitch=%.6f yaw=%.6f",
+          qright.x(), qright.y(), qright.z(), qright.w(), rpy.z(), rpy.y(), rpy.x());
+      }
 
       const Eigen::Quaterniond q_pitch({p, Eigen::Vector3d::UnitY()});
       const Eigen::Quaterniond q_roll({r, Eigen::Vector3d::UnitX()});

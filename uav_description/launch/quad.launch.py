@@ -53,6 +53,7 @@ def generate_launch_description():
             # '--log-level', 'angular_velocity:=debug',
             # '--log-level', 'angular_position:=debug',
             # '--log-level', 'attitude:=debug',
+            '--log-level', 'attitude_mode:=debug',
         ],
     )
 
