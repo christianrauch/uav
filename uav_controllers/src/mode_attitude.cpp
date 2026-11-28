@@ -205,6 +205,7 @@ public:
           rpy.x());
       }
 
+      // TODO: We have to yaw around the body z-axis, NOT the world z-axis!
       q_reference = q_reference * q_delta_yaw;
 
       {
